@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Core.Entities;
+namespace Application.Entities;
 
 public partial class File
 {

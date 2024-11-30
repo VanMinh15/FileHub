@@ -1,7 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Application.Entities;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using File = Application.Entities.File;
 
-namespace Core.Entities;
+namespace Infrastructure.Data;
 
 public partial class FileHubContext : DbContext
 {

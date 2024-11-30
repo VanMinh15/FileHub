@@ -19,7 +19,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Core\Core.csproj" />
+    <ProjectReference Include="..\Core\Application.csproj" />
+    <ProjectReference Include="..\Repositories\Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
