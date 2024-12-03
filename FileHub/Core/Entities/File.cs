@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Application.Models;
 
 namespace Application.Entities;
 
@@ -34,8 +33,7 @@ public partial class File
     public DateTime? UpdatedAt { get; set; }
 
     public virtual Folder? Folder { get; set; }
+    public virtual ApplicationUser Sender { get; set; }
+    public virtual ApplicationUser Receiver { get; set; }
 
-    public virtual AspNetUser Receiver { get; set; } = null!;
-
-    public virtual AspNetUser Sender { get; set; } = null!;
 }

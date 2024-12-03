@@ -1,6 +1,6 @@
 ﻿namespace Application.Interfaces
 {
-    internal interface IUserRepository
+    public interface IUserRepository
     {
     }
 }

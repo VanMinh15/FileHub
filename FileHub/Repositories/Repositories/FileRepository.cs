@@ -1,5 +1,5 @@
 ﻿using Application.Interfaces;
-using Microsoft.EntityFrameworkCore;
+using Infrastructure.Data;
 using File = Application.Entities.File;
 
 
@@ -7,7 +7,7 @@ namespace Infrastructure.Repositories
 {
     public class FileRepository : BaseRepository<File>, IFileRepository
     {
-        public FileRepository(DbContext context) : base(context)
+        public FileRepository(FileHubContext context) : base(context)
         {
         }
     }

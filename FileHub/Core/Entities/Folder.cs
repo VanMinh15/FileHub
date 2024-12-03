@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Application.Models;
 
 namespace Application.Entities;
 
@@ -28,8 +27,7 @@ public partial class Folder
     public virtual ICollection<Folder> InverseParentFolder { get; set; } = new List<Folder>();
 
     public virtual Folder? ParentFolder { get; set; }
+    public virtual ApplicationUser Sender { get; set; }
+    public virtual ApplicationUser Receiver { get; set; }
 
-    public virtual AspNetUser Receiver { get; set; } = null!;
-
-    public virtual AspNetUser Sender { get; set; } = null!;
 }
