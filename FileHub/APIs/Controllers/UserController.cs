@@ -1,4 +1,5 @@
-﻿using Application.Interfaces;
+﻿using Application.DTOs;
+using Application.Interfaces;
 using Application.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,15 +17,15 @@ namespace APIs.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromQuery] string email, [FromQuery] string password)
+        public async Task<IActionResult> Register([FromBody] RegisterDTO registerDTO)
         {
 
-            var result = await _userService.Register(email, password);
-            if (result.Succeeded)
+            var response = await _userService.Register(registerDTO);
+            if (response.Success)
             {
-                return Ok(result);
+                return Ok(response);
             }
-            return BadRequest(result.Errors);
+            return BadRequest(response);
         }
 
         [HttpGet("{id}")]

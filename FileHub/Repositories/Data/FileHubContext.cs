@@ -31,7 +31,7 @@ public partial class FileHubContext : IdentityDbContext<ApplicationUser>
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        base.OnModelCreating(modelBuilder); // Ensure this call is present
+        base.OnModelCreating(modelBuilder);
 
         modelBuilder.Entity<File>(entity =>
         {

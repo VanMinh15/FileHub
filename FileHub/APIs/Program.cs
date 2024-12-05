@@ -1,3 +1,4 @@
+using APIs.Middlewares;
 using Application.Interfaces;
 using Application.Models;
 using Application.Services;
@@ -30,12 +31,13 @@ builder.Services.AddDbContext<FileHubContext>(options =>
 
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 {
-    options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
-    options.Password.RequireDigit = true;
-    options.Password.RequireLowercase = true;
+    // Password
+    options.Password.RequireDigit = false;
+    options.Password.RequireLowercase = false;
     options.Password.RequireUppercase = false;
     options.Password.RequireNonAlphanumeric = false;
     options.Password.RequiredLength = 3;
+
 })
     .AddEntityFrameworkStores<FileHubContext>()
     .AddDefaultTokenProviders();
@@ -44,7 +46,6 @@ builder.Services.ConfigureApplicationCookie(options =>
 {
     options.Cookie.Name = IdentityConstants.ApplicationScheme;
 });
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -53,6 +54,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+app.UseMiddleware<ExceptionMiddleware>();
 
 app.UseHttpsRedirection();
 app.UseAuthentication();

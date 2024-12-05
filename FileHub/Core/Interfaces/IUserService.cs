@@ -1,11 +1,12 @@
-﻿using Application.Models;
+﻿using Application.DTOs;
+using Application.Models;
 using Microsoft.AspNetCore.Identity;
 
 namespace Application.Interfaces
 {
     public interface IUserService
     {
-        Task<IdentityResult> Register(string email, string password);
+        Task<ApiResponse<IdentityResult>> Register(RegisterDTO registerDTO);
         Task<ApplicationUser?> FindByIdAsync(string userId);
         Task<ApplicationUser?> FindByNameAsync(string userName);
         Task<IdentityResult> UpdateUserAsync(ApplicationUser user);

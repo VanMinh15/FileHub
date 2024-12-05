@@ -1,4 +1,6 @@
-﻿using Application.Interfaces;
+﻿using Application.DTOs;
+using Application.Enums;
+using Application.Interfaces;
 using Application.Models;
 using Microsoft.AspNetCore.Identity;
 
@@ -15,16 +17,31 @@ namespace Application.Services
             _signInManager = signInManager;
         }
 
-        public async Task<IdentityResult> Register(string email, string password)
+        public async Task<ApiResponse<IdentityResult>> Register(RegisterDTO registerDTO)
         {
-            var user = new ApplicationUser
+            try
             {
-                UserName = email,
-                Email = email,
-                Status = "Active"
-            };
+                var user = new ApplicationUser
+                {
+                    UserName = registerDTO.Email,
+                    Email = registerDTO.Email,
+                    Status = UserStatus.Active.Name
+                };
 
-            return await _userManager.CreateAsync(user, password);
+                var result = await _userManager.CreateAsync(user, registerDTO.Password);
+                if (result.Succeeded)
+                {
+                    return new ApiResponse<IdentityResult>(true, "Register succesfully", result);
+                }
+                else
+                {
+                    return new ApiResponse<IdentityResult>(false, "Register failed", result);
+                }
+            }
+            catch (Exception ex)
+            {
+                return new ApiResponse<IdentityResult>(false, "An error occurred during registration", null, new[] { ex.Message });
+            }
         }
 
         public async Task<ApplicationUser> FindByIdAsync(string userId)
