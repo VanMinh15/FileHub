@@ -15,17 +15,6 @@ namespace APIs.Controllers
             _userService = userService;
         }
 
-        [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterDTO registerDTO)
-        {
-            var response = await _userService.Register(registerDTO);
-            if (response.Success)
-            {
-                return Ok(response);
-            }
-            return BadRequest(response);
-        }
-
         [HttpGet("{id}")]
         public async Task<IActionResult> GetUserById(string id)
         {
@@ -58,24 +47,5 @@ namespace APIs.Controllers
             }
             return BadRequest(result);
         }
-
-        [HttpPost("signin")]
-        public async Task<IActionResult> SignIn([FromQuery] string username, [FromQuery] string password, [FromQuery] bool isPersistent, [FromQuery] bool lockoutOnFailure)
-        {
-            var result = await _userService.PasswordSignInAsync(username, password, isPersistent, lockoutOnFailure);
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-            return Unauthorized(result);
-        }
-
-        [HttpPost("signout")]
-        public async Task<IActionResult> SignOut()
-        {
-            await _userService.SignOutAsync();
-            return Ok();
-        }
     }
 }
-

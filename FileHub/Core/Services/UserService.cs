@@ -10,11 +10,16 @@ namespace Application.Services
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly ITokenService _tokenService;
 
-        public UserService(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager)
+        public UserService(
+        UserManager<ApplicationUser> userManager,
+        SignInManager<ApplicationUser> signInManager,
+        ITokenService tokenService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _tokenService = tokenService;
         }
 
         public async Task<ApiResponse<IdentityResult>> Register(RegisterDTO registerDTO)
@@ -96,14 +101,43 @@ namespace Application.Services
         : new ApiResponse<IdentityResult>(false, "Update failed", result, result.Errors.Select(e => e.Description));
         }
 
-        public async Task<SignInResult> PasswordSignInAsync(string userName, string password, bool isPersistent, bool lockoutOnFailure)
+        public async Task<ApiResponse<TokenDTO>> Login(LoginDTO model)
         {
-            return await _signInManager.PasswordSignInAsync(userName, password, isPersistent, lockoutOnFailure);
+            var user = await _userManager.FindByEmailAsync(model.Email.Trim());
+
+            if (user == null)
+                return new ApiResponse<TokenDTO>(false, "Invalid login attempt", null);
+
+            if (await _userManager.IsLockedOutAsync(user))
+            {
+                var lockoutEnd = await _userManager.GetLockoutEndDateAsync(user);
+                return new ApiResponse<TokenDTO>(false,
+                    $"Account locked. Try again after {lockoutEnd?.LocalDateTime}",
+                    null);
+            }
+
+            var result = await _signInManager.CheckPasswordSignInAsync(
+                user,
+                model.Password,
+                lockoutOnFailure: true);
+
+            if (result.Succeeded)
+            {
+                var token = await _tokenService.GenerateJwtTokenAsync(user);
+                return new ApiResponse<TokenDTO>(true, "Login successfully", token);
+            }
+
+            if (result.IsLockedOut)
+                return new ApiResponse<TokenDTO>(false, "Account locked due to multiple failed attempts", null);
+
+            return new ApiResponse<TokenDTO>(false, "Invalid login attempt", null);
         }
 
         public async Task SignOutAsync()
         {
             await _signInManager.SignOutAsync();
         }
+
+
     }
 }

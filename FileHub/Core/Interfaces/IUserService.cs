@@ -10,7 +10,7 @@ namespace Application.Interfaces
         Task<ApiResponse<ApplicationUser>> FindByIdAsync(string userId);
         Task<ApiResponse<ApplicationUser>> FindByNameAsync(string userName);
         Task<ApiResponse<IdentityResult>> UpdateUserProfile(UpdateDTO updateDTO);
-        Task<SignInResult> PasswordSignInAsync(string userName, string password, bool isPersistent, bool lockoutOnFailure);
+        Task<ApiResponse<TokenDTO>> Login(LoginDTO model);
         Task SignOutAsync();
     }
 }
