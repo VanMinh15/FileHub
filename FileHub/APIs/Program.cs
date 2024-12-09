@@ -39,6 +39,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
     options.Password.RequiredLength = 3;
 
 })
+    .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<FileHubContext>()
     .AddDefaultTokenProviders();
 
@@ -57,6 +58,8 @@ if (app.Environment.IsDevelopment())
 app.UseMiddleware<ExceptionMiddleware>();
 
 app.UseHttpsRedirection();
+app.UseRouting();
+
 app.UseAuthentication();
 app.UseAuthorization();
 

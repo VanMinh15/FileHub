@@ -1,6 +1,5 @@
 ﻿using Application.DTOs;
 using Application.Interfaces;
-using Application.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace APIs.Controllers
@@ -19,7 +18,6 @@ namespace APIs.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterDTO registerDTO)
         {
-
             var response = await _userService.Register(registerDTO);
             if (response.Success)
             {
@@ -50,15 +48,15 @@ namespace APIs.Controllers
             return Ok(user);
         }
 
-        [HttpPut("update")]
-        public async Task<IActionResult> UpdateUser([FromBody] ApplicationUser user)
+        [HttpPut("update-profile")]
+        public async Task<IActionResult> UpdateUserProfile([FromBody] UpdateDTO user)
         {
-            var result = await _userService.UpdateUserAsync(user);
-            if (result.Succeeded)
+            var result = await _userService.UpdateUserProfile(user);
+            if (result.Success)
             {
                 return Ok(result);
             }
-            return BadRequest(result.Errors);
+            return BadRequest(result);
         }
 
         [HttpPost("signin")]

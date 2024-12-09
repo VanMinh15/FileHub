@@ -7,9 +7,9 @@ namespace Application.Interfaces
     public interface IUserService
     {
         Task<ApiResponse<IdentityResult>> Register(RegisterDTO registerDTO);
-        Task<ApplicationUser?> FindByIdAsync(string userId);
-        Task<ApplicationUser?> FindByNameAsync(string userName);
-        Task<IdentityResult> UpdateUserAsync(ApplicationUser user);
+        Task<ApiResponse<ApplicationUser>> FindByIdAsync(string userId);
+        Task<ApiResponse<ApplicationUser>> FindByNameAsync(string userName);
+        Task<ApiResponse<IdentityResult>> UpdateUserProfile(UpdateDTO updateDTO);
         Task<SignInResult> PasswordSignInAsync(string userName, string password, bool isPersistent, bool lockoutOnFailure);
         Task SignOutAsync();
     }
