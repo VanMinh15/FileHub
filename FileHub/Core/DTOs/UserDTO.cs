@@ -29,4 +29,27 @@ namespace Application.DTOs
         [Required]
         public required string Password { get; set; }
     }
+
+    public class ForgotPasswordDTO
+    {
+        [Required]
+        [EmailAddress]
+        public required string Email { get; set; }
+    }
+
+    public class ResetPasswordDTO
+    {
+        [Required]
+        [EmailAddress]
+        public required string Email { get; set; }
+
+        [Required]
+        public required string Token { get; set; }
+
+        [Required]
+        public required string NewPassword { get; set; }
+
+        [Compare("NewPassword")]
+        public required string ConfirmPassword { get; set; }
+    }
 }

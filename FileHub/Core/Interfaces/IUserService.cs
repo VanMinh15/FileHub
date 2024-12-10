@@ -11,6 +11,8 @@ namespace Application.Interfaces
         Task<ApiResponse<ApplicationUser>> FindByNameAsync(string userName);
         Task<ApiResponse<IdentityResult>> UpdateUserProfile(UpdateDTO updateDTO);
         Task<ApiResponse<TokenDTO>> Login(LoginDTO model);
+        Task<ApiResponse<object>> ForgotPassword(ForgotPasswordDTO forgotPasswordDTO);
+        Task<ApiResponse<object>> ResetPassword(ResetPasswordDTO resetPasswordDTO);
         Task SignOutAsync();
     }
 }

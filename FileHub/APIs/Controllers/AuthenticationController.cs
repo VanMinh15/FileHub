@@ -39,6 +39,33 @@ namespace APIs.Controllers
             return BadRequest(result);
         }
 
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDTO model)
+        {
+            var response = await _userService.ForgotPassword(model);
+            if (response.Success)
+            {
+                return Ok(response);
+            }
+            return BadRequest(response);
+        }
+
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDTO model)
+        {
+            if (model.NewPassword != model.ConfirmPassword)
+            {
+                return BadRequest(new ApiResponse<object>(false, "Password and Confirm Password don't match", null));
+            }
+
+            var response = await _userService.ResetPassword(model);
+            if (response.Success)
+            {
+                return Ok(response);
+            }
+            return BadRequest(response);
+        }
+
         [Authorize]
         [HttpGet("me")]
         public async Task<IActionResult> GetCurrentUser()

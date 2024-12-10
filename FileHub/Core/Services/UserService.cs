@@ -3,6 +3,7 @@ using Application.Enums;
 using Application.Interfaces;
 using Application.Models;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
 
 namespace Application.Services
 {
@@ -11,15 +12,21 @@ namespace Application.Services
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly ITokenService _tokenService;
+        private readonly IEmailSender _emailSender;
+        private readonly IConfiguration _configuration;
 
         public UserService(
-        UserManager<ApplicationUser> userManager,
-        SignInManager<ApplicationUser> signInManager,
-        ITokenService tokenService)
+       UserManager<ApplicationUser> userManager,
+       SignInManager<ApplicationUser> signInManager,
+       ITokenService tokenService,
+       IEmailSender emailSender,
+       IConfiguration configuration)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _tokenService = tokenService;
+            _emailSender = emailSender;
+            _configuration = configuration;
         }
 
         public async Task<ApiResponse<IdentityResult>> Register(RegisterDTO registerDTO)
@@ -44,6 +51,113 @@ namespace Application.Services
             }
         }
 
+        public async Task<ApiResponse<TokenDTO>> Login(LoginDTO model)
+        {
+            var user = await _userManager.FindByEmailAsync(model.Email.Trim());
+
+            if (user == null)
+                return new ApiResponse<TokenDTO>(false, "Invalid login attempt", null);
+
+            if (await _userManager.IsLockedOutAsync(user))
+            {
+                var lockoutEnd = await _userManager.GetLockoutEndDateAsync(user);
+                return new ApiResponse<TokenDTO>(false,
+                    $"Account locked. Try again after {lockoutEnd?.LocalDateTime}",
+                    null);
+            }
+
+            var result = await _signInManager.CheckPasswordSignInAsync(
+                user,
+                model.Password,
+                lockoutOnFailure: true);
+
+            if (result.Succeeded)
+            {
+                var token = await _tokenService.GenerateJwtTokenAsync(user);
+                return new ApiResponse<TokenDTO>(true, "Login successfully", token);
+            }
+
+            if (result.IsLockedOut)
+                return new ApiResponse<TokenDTO>(false, "Account locked due to multiple failed attempts", null);
+
+            return new ApiResponse<TokenDTO>(false, "Invalid login attempt", null);
+        }
+
+        public async Task<ApiResponse<object>> ForgotPassword(ForgotPasswordDTO forgotPasswordDTO)
+        {
+            var response = new ApiResponse<object>(
+                success: true,
+                message: "If your email is registered, you will receive a password reset link.",
+                data: null,
+                errors: null
+            );
+
+            var user = await _userManager.FindByEmailAsync(forgotPasswordDTO.Email);
+            if (user == null)
+            {
+                return response;
+            }
+
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+
+            var resetLink = $"{_configuration["AppUrl"]}/reset-password?email={Uri.EscapeDataString(user.Email)}&token={Uri.EscapeDataString(token)}";
+
+            var subject = "Reset Your Password";
+            var body = $@"
+                <h2>Reset Your Password</h2>
+                <p>Please click the link below to reset your password:</p>
+                <a href=""{resetLink}"">Reset Password</a>
+                <p>If you didn't request this, please ignore this email.</p>
+                <p>This link will expire in 24 hours.</p>";
+            try
+            {
+                await _emailSender.SendEmailAsync(user.Email, subject, body);
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = ex.Message;
+            }
+            return response;
+        }
+
+        public async Task<ApiResponse<object>> ResetPassword(ResetPasswordDTO resetPasswordDTO)
+        {
+            var user = await _userManager.FindByEmailAsync(resetPasswordDTO.Email);
+            if (user == null || user.Status != UserStatus.Active.Name)
+            {
+                return new ApiResponse<object>(
+                    success: false,
+                    message: "Password reset failed",
+                    data: null,
+                    errors: new[] { "User not found or invalid" }
+                );
+            }
+
+            var result = await _userManager.ResetPasswordAsync(
+                user,
+                resetPasswordDTO.Token,
+                resetPasswordDTO.NewPassword);
+
+            if (!result.Succeeded)
+            {
+                return new ApiResponse<object>(
+                    success: false,
+                    message: "Password reset failed",
+                    data: null,
+                    errors: result.Errors.Select(e => e.Description)
+                );
+            }
+
+            return new ApiResponse<object>(
+                success: true,
+                message: "Password reset successfully",
+                data: null,
+                errors: null
+            );
+        }
+
+
         public async Task<ApiResponse<ApplicationUser>> FindByIdAsync(string userId)
         {
             var user = await _userManager.FindByIdAsync(userId);
@@ -62,6 +176,16 @@ namespace Application.Services
                 return new ApiResponse<ApplicationUser>(false, "User not found", null);
             }
             return new ApiResponse<ApplicationUser>(true, "User found", user);
+        }
+
+        public async Task<ApiResponse<ApplicationUser>> FindByEmailAsync(string email)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                return new ApiResponse<ApplicationUser>(false, "Email not found", null);
+            }
+            return new ApiResponse<ApplicationUser>(true, "Email found", user);
         }
 
 
@@ -101,37 +225,6 @@ namespace Application.Services
         : new ApiResponse<IdentityResult>(false, "Update failed", result, result.Errors.Select(e => e.Description));
         }
 
-        public async Task<ApiResponse<TokenDTO>> Login(LoginDTO model)
-        {
-            var user = await _userManager.FindByEmailAsync(model.Email.Trim());
-
-            if (user == null)
-                return new ApiResponse<TokenDTO>(false, "Invalid login attempt", null);
-
-            if (await _userManager.IsLockedOutAsync(user))
-            {
-                var lockoutEnd = await _userManager.GetLockoutEndDateAsync(user);
-                return new ApiResponse<TokenDTO>(false,
-                    $"Account locked. Try again after {lockoutEnd?.LocalDateTime}",
-                    null);
-            }
-
-            var result = await _signInManager.CheckPasswordSignInAsync(
-                user,
-                model.Password,
-                lockoutOnFailure: true);
-
-            if (result.Succeeded)
-            {
-                var token = await _tokenService.GenerateJwtTokenAsync(user);
-                return new ApiResponse<TokenDTO>(true, "Login successfully", token);
-            }
-
-            if (result.IsLockedOut)
-                return new ApiResponse<TokenDTO>(false, "Account locked due to multiple failed attempts", null);
-
-            return new ApiResponse<TokenDTO>(false, "Invalid login attempt", null);
-        }
 
         public async Task SignOutAsync()
         {
