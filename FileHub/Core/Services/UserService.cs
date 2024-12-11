@@ -2,6 +2,7 @@
 using Application.Enums;
 using Application.Interfaces;
 using Application.Models;
+using Google.Apis.Auth;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 
@@ -225,6 +226,57 @@ namespace Application.Services
         : new ApiResponse<IdentityResult>(false, "Update failed", result, result.Errors.Select(e => e.Description));
         }
 
+        public async Task<ApiResponse<TokenDTO>> ExternalLoginAsync(ExternalLoginDTO externalLoginDTO)
+        {
+            // Validate the ID token
+            var payload = await ValidateGoogleTokenAsync(externalLoginDTO.IdToken);
+            if (payload == null)
+            {
+                return new ApiResponse<TokenDTO>(false, "Invalid Google token.", null);
+            }
+
+            // Check if the user exists
+            var user = await _userManager.FindByEmailAsync(payload.Email);
+            if (user == null)
+            {
+                user = new ApplicationUser
+                {
+                    UserName = payload.Email,
+                    Email = payload.Email,
+                    EmailConfirmed = true,
+                };
+
+                var result = await _userManager.CreateAsync(user);
+                if (!result.Succeeded)
+                {
+                    return new ApiResponse<TokenDTO>(false, "User created failed.", null, result.Errors.Select(e => e.Description));
+                }
+
+                await _userManager.AddToRoleAsync(user, "User");
+            }
+
+            // Generate JWT token
+            var token = await _tokenService.GenerateJwtTokenAsync(user);
+            return new ApiResponse<TokenDTO>(true, "Login successful.", token);
+        }
+
+        private async Task<GoogleJsonWebSignature.Payload?> ValidateGoogleTokenAsync(string idToken)
+        {
+            var settings = new GoogleJsonWebSignature.ValidationSettings()
+            {
+                Audience = new[] { _configuration["Authentication:Google:ClientId"] }
+            };
+
+            try
+            {
+                var payload = await GoogleJsonWebSignature.ValidateAsync(idToken, settings);
+                return payload;
+            }
+            catch
+            {
+                return null;
+            }
+        }
 
         public async Task SignOutAsync()
         {

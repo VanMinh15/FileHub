@@ -39,6 +39,17 @@ namespace APIs.Controllers
             return BadRequest(result);
         }
 
+        [HttpPost("ExternalLogin")]
+        public async Task<IActionResult> ExternalLogin([FromBody] ExternalLoginDTO externalLoginDTO)
+        {
+            var response = await _userService.ExternalLoginAsync(externalLoginDTO);
+            if (response.Success)
+            {
+                return Ok(response);
+            }
+            return BadRequest(response);
+        }
+
         [HttpPost("forgot-password")]
         public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDTO model)
         {
