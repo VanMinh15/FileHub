@@ -1,35 +1,64 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { Cloud } from "lucide-react";
+import { ModeToggle } from "@/components/layout/mode-toggle";
+import { ThemeProvider } from "@/components/layout/theme-provider";
+import { AuthForm } from "@/components/common/auth";
 
-function App() {
-  const [count, setCount] = useState(0)
-
+function MainContent() {
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <div className="min-h-screen bg-background">
+      <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-10"></div>
+
+      <nav className="border-b bg-background/80 backdrop-blur-md">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-center h-24 relative">
+            <div className="flex items-center space-x-6">
+              <div className="relative">
+                <div className="absolute inset-0 blur-lg bg-primary/50"></div>
+                <Cloud className="relative h-14 w-14 text-primary" />
+              </div>
+              <span className="text-5xl font-bold">FileHub</span>
+            </div>
+            <div className="absolute right-4 ">
+              <ModeToggle />
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      {/* Main Content */}
+      <main className="container mx-auto px-4 py-20">
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-20">
+          {/* Hero Section */}
+          <div className="lg:w-1/2 space-y-8">
+            <h1 className="text-6xl font-bold text-gray-900 dark:text-white">
+              Welcome to{" "}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-gray-500">
+                FileHub
+              </span>
+            </h1>
+            <p className="text-xl text-gray-600 dark:text-gray-300">
+              Easily exchange, organize, and manage your files with FileHub.
+            </p>
+          </div>
+
+          {/* Auth Card */}
+          <div className="lg:w-1/2 w-full max-w-md">
+            <AuthForm />
+          </div>
+        </div>
+      </main>
+    </div>
+  );
 }
 
-export default App
+function App() {
+  return (
+    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+      <div className="min-h-screen bg-background text-foreground">
+        <MainContent />
+      </div>
+    </ThemeProvider>
+  );
+}
+
+export default App;
