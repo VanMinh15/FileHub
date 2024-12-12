@@ -1,5 +1,6 @@
 ﻿using Application.DTOs;
 using Application.Models;
+using Google.Apis.Auth;
 
 namespace Application.Interfaces
 {
@@ -9,6 +10,7 @@ namespace Application.Interfaces
         TokenDTO GenerateAccessToken(ApplicationUser user);
         TokenDTO GenerateRefreshToken(ApplicationUser user);
         ApiResponse<TokenDTO> RefreshToken(string refreshToken);
+        Task<GoogleJsonWebSignature.Payload?> ValidateGoogleTokenAsync(string idToken);
     }
 
 }

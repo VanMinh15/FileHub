@@ -122,6 +122,16 @@ builder.Services.AddSwaggerGen(options =>
         }
     });
 });
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowSpecificOrigin",
+        builder => builder
+            .WithOrigins("http://localhost:5173")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials());
+});
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -134,7 +144,7 @@ app.UseMiddleware<ExceptionMiddleware>();
 
 app.UseHttpsRedirection();
 app.UseRouting();
-
+app.UseCors("AllowSpecificOrigin");
 app.UseAuthentication();
 app.UseAuthorization();
 

@@ -1,7 +1,9 @@
 ﻿using Application.DTOs;
 using Application.Interfaces;
 using Application.Models;
+using Google.Apis.Auth;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -14,11 +16,14 @@ namespace Application.Services
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly JWTSettings _jwtSettings;
+        private readonly IConfiguration _configuration;
 
-        public TokenService(UserManager<ApplicationUser> userManager, IOptions<JWTSettings> jwtSettings)
+
+        public TokenService(UserManager<ApplicationUser> userManager, IOptions<JWTSettings> jwtSettings, IConfiguration configuration)
         {
             _userManager = userManager;
             _jwtSettings = jwtSettings.Value;
+            _configuration = configuration;
         }
 
         public async Task<TokenDTO> GenerateJwtTokenAsync(ApplicationUser user)
@@ -137,6 +142,23 @@ namespace Application.Services
             catch (Exception)
             {
                 return new ApiResponse<TokenDTO>(false, "Invalid token", null);
+            }
+        }
+        public async Task<GoogleJsonWebSignature.Payload?> ValidateGoogleTokenAsync(string idToken)
+        {
+            var settings = new GoogleJsonWebSignature.ValidationSettings()
+            {
+                Audience = new[] { _configuration["Authentication:Google:ClientId"] }
+            };
+
+            try
+            {
+                var payload = await GoogleJsonWebSignature.ValidateAsync(idToken, settings);
+                return payload;
+            }
+            catch
+            {
+                return null;
             }
         }
     }

@@ -2,7 +2,6 @@
 using Application.Enums;
 using Application.Interfaces;
 using Application.Models;
-using Google.Apis.Auth;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 
@@ -34,21 +33,27 @@ namespace Application.Services
         {
             var user = new ApplicationUser
             {
-                UserName = registerDTO.Email,
+                UserName = registerDTO.UserName,
                 Email = registerDTO.Email,
                 Status = UserStatus.Active.Name
             };
+            var existEmail = await _userManager.FindByEmailAsync(registerDTO.Email);
+
+            if (existEmail != null)
+            {
+                return new ApiResponse<IdentityResult>(false, "Email already exists", null);
+            }
 
             var result = await _userManager.CreateAsync(user, registerDTO.Password);
-            await _userManager.AddToRoleAsync(user, "User");
 
             if (result.Succeeded)
             {
+                await _userManager.AddToRoleAsync(user, "User");
                 return new ApiResponse<IdentityResult>(true, "Register succesfully", result);
             }
             else
             {
-                return new ApiResponse<IdentityResult>(false, "Register failed", result);
+                return new ApiResponse<IdentityResult>(false, "Register failed", result, result.Errors.Select(e => e.Description));
             }
         }
 
@@ -229,7 +234,7 @@ namespace Application.Services
         public async Task<ApiResponse<TokenDTO>> ExternalLoginAsync(ExternalLoginDTO externalLoginDTO)
         {
             // Validate the ID token
-            var payload = await ValidateGoogleTokenAsync(externalLoginDTO.IdToken);
+            var payload = await _tokenService.ValidateGoogleTokenAsync(externalLoginDTO.IdToken);
             if (payload == null)
             {
                 return new ApiResponse<TokenDTO>(false, "Invalid Google token.", null);
@@ -257,26 +262,10 @@ namespace Application.Services
 
             // Generate JWT token
             var token = await _tokenService.GenerateJwtTokenAsync(user);
-            return new ApiResponse<TokenDTO>(true, "Login successful.", token);
+            return new ApiResponse<TokenDTO>(true, "Login successfully", token);
         }
 
-        private async Task<GoogleJsonWebSignature.Payload?> ValidateGoogleTokenAsync(string idToken)
-        {
-            var settings = new GoogleJsonWebSignature.ValidationSettings()
-            {
-                Audience = new[] { _configuration["Authentication:Google:ClientId"] }
-            };
 
-            try
-            {
-                var payload = await GoogleJsonWebSignature.ValidateAsync(idToken, settings);
-                return payload;
-            }
-            catch
-            {
-                return null;
-            }
-        }
 
         public async Task SignOutAsync()
         {
