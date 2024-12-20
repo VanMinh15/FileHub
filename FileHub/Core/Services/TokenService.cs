@@ -18,7 +18,6 @@ namespace Application.Services
         private readonly JWTSettings _jwtSettings;
         private readonly IConfiguration _configuration;
 
-
         public TokenService(UserManager<ApplicationUser> userManager, IOptions<JWTSettings> jwtSettings, IConfiguration configuration)
         {
             _userManager = userManager;
@@ -28,29 +27,27 @@ namespace Application.Services
 
         public async Task<TokenDTO> GenerateJwtTokenAsync(ApplicationUser user)
         {
-            var accessToken = GenerateAccessToken(user);
-            var refreshToken = GenerateRefreshToken(user);
+            var accessToken = await GenerateAccessTokenAsync(user);
+            var refreshToken = await GenerateRefreshTokenAsync(user);
 
             return new TokenDTO
             {
                 Token = accessToken.Token,
-                Expiration = accessToken.Expiration,
                 RefreshToken = refreshToken.Token,
-                RefreshTokenExpiration = refreshToken.Expiration
             };
         }
 
-        public TokenDTO GenerateAccessToken(ApplicationUser user)
+        public async Task<TokenDTO> GenerateAccessTokenAsync(ApplicationUser user)
         {
             var key = Encoding.UTF8.GetBytes(_jwtSettings.SecretKey);
-            var userRoles = _userManager.GetRolesAsync(user).Result;
+            var userRoles = await _userManager.GetRolesAsync(user);
 
             var authClaims = new List<Claim>
-        {
-            new Claim(JwtRegisteredClaimNames.Sub, user.Id),
-            new Claim(ClaimTypes.Name, user.UserName ?? ""),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-        };
+            {
+                new Claim(JwtRegisteredClaimNames.Sub, user.Id),
+                new Claim(ClaimTypes.Name, user.UserName ?? ""),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            };
 
             foreach (var role in userRoles)
             {
@@ -62,7 +59,7 @@ namespace Application.Services
             var token = new JwtSecurityToken(
                 issuer: _jwtSettings.Issuer,
                 audience: _jwtSettings.Audience,
-                expires: DateTime.UtcNow.AddMinutes(60),
+                expires: DateTime.UtcNow.AddMinutes(15),
                 claims: authClaims,
                 signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
             );
@@ -70,19 +67,18 @@ namespace Application.Services
             return new TokenDTO
             {
                 Token = new JwtSecurityTokenHandler().WriteToken(token),
-                Expiration = token.ValidTo
             };
         }
 
-        public TokenDTO GenerateRefreshToken(ApplicationUser user)
+        public async Task<TokenDTO> GenerateRefreshTokenAsync(ApplicationUser user)
         {
             var key = Encoding.UTF8.GetBytes(_jwtSettings.SecretKey);
 
             var authClaims = new List<Claim>
-        {
-            new Claim(JwtRegisteredClaimNames.Sub, user.Id),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-        };
+            {
+                new Claim(JwtRegisteredClaimNames.Sub, user.Id),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            };
 
             var authSigningKey = new SymmetricSecurityKey(key);
 
@@ -97,11 +93,10 @@ namespace Application.Services
             return new TokenDTO
             {
                 Token = new JwtSecurityTokenHandler().WriteToken(token),
-                Expiration = token.ValidTo
             };
         }
 
-        public ApiResponse<TokenDTO> RefreshToken(string refreshToken)
+        public async Task<ApiResponse<TokenDTO>> RefreshTokenAsync(string refreshToken)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.UTF8.GetBytes(_jwtSettings.SecretKey);
@@ -127,12 +122,12 @@ namespace Application.Services
                 }
 
                 var userId = principal.FindFirstValue(JwtRegisteredClaimNames.Sub);
-                var user = _userManager.FindByIdAsync(userId).Result;
+                var user = await _userManager.FindByIdAsync(userId);
 
                 if (user == null)
                     return new ApiResponse<TokenDTO>(false, "User not found", null);
 
-                var newTokens = GenerateJwtTokenAsync(user).Result;
+                var newTokens = await GenerateJwtTokenAsync(user);
                 return new ApiResponse<TokenDTO>(true, "Token refreshed successfully", newTokens);
             }
             catch (SecurityTokenExpiredException)
@@ -144,6 +139,7 @@ namespace Application.Services
                 return new ApiResponse<TokenDTO>(false, "Invalid token", null);
             }
         }
+
         public async Task<GoogleJsonWebSignature.Payload?> ValidateGoogleTokenAsync(string idToken)
         {
             var settings = new GoogleJsonWebSignature.ValidationSettings()

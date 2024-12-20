@@ -11,10 +11,12 @@ namespace APIs.Controllers
     public class AuthenticationController : ControllerBase
     {
         private readonly IUserService _userService;
+        private readonly ITokenService _tokenService;
 
-        public AuthenticationController(IUserService userService)
+        public AuthenticationController(IUserService userService, ITokenService tokenService)
         {
             _userService = userService;
+            _tokenService = tokenService;
         }
 
         [HttpPost("register")]
@@ -101,7 +103,29 @@ namespace APIs.Controllers
         public async Task<IActionResult> Logout()
         {
             await _userService.SignOutAsync();
+
+            Response.Cookies.Delete("AuthCookie", new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+                Path = "/"
+            });
+
             return Ok(new { Message = "Successfully logged out" });
+        }
+
+        [HttpPost("refresh-token")]
+        public async Task<IActionResult> RefreshToken([FromBody] string refreshToken)
+        {
+            var response = await _tokenService.RefreshTokenAsync(refreshToken);
+
+            if (response.Success)
+            {
+                return Ok(response);
+            }
+
+            return Unauthorized(response);
         }
     }
 }

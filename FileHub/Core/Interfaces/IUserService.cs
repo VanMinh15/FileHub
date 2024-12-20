@@ -14,6 +14,6 @@ namespace Application.Interfaces
         Task<ApiResponse<object>> ForgotPassword(ForgotPasswordDTO forgotPasswordDTO);
         Task<ApiResponse<object>> ResetPassword(ResetPasswordDTO resetPasswordDTO);
         Task<ApiResponse<TokenDTO>> ExternalLoginAsync(ExternalLoginDTO externalLoginDTO);
-        Task SignOutAsync();
+        Task<ApiResponse<object>> SignOutAsync();
     }
 }

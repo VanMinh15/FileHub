@@ -1,8 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { login as apiLogin, register as apiRegister } from "@/services/api";
+import { login as apiLogin, register as apiRegister } from "@/services/authApi";
 import Cookies from "js-cookie";
 
-// Define the state interface
 interface AuthState {
   user: {
     id: string;
@@ -10,19 +9,19 @@ interface AuthState {
     userName: string;
   } | null;
   token: string | null;
+  refreshToken: string | null;
   loading: boolean;
   error: string | null;
 }
 
-// Define initial state
 const initialState: AuthState = {
   user: null,
   token: Cookies.get("token") || null,
+  refreshToken: Cookies.get("refreshToken") || null,
   loading: false,
   error: null,
 };
 
-// Async thunk for login
 export const login = createAsyncThunk(
   "auth/login",
   async (
@@ -32,17 +31,19 @@ export const login = createAsyncThunk(
     try {
       const response = await apiLogin(credentials.email, credentials.password);
       if (!response.success || !response.data) {
-        const errorMessage =
-          response.data?.errors?.[0]?.description ||
-          response.errors?.[0] ||
-          response.message ||
-          "Login failed";
-        return rejectWithValue(errorMessage);
+        return rejectWithValue(response.message || "Login failed");
       }
-      Cookies.set("token", response.data.token);
+
+      const { token, refreshToken, user } = response.data;
+
+      // Store tokens in cookies
+      Cookies.set("token", token);
+      Cookies.set("refreshToken", refreshToken);
+
       return {
-        user: response.data.user,
-        token: response.data.token,
+        user,
+        token,
+        refreshToken,
       };
     } catch (err: any) {
       return rejectWithValue(err.message);
@@ -63,16 +64,9 @@ export const register = createAsyncThunk(
         credentials.password
       );
       if (!response.success || !response.data) {
-        const errorMessage =
-          response.data?.errors?.[0]?.description ||
-          response.errors?.[0] ||
-          response.message ||
-          "Registration failed";
-        return rejectWithValue(errorMessage);
+        return rejectWithValue(response.message || "Registration failed");
       }
-      return {
-        user: response.data.user,
-      };
+      return response.data;
     } catch (err: any) {
       return rejectWithValue(err.message);
     }
@@ -86,14 +80,15 @@ const authSlice = createSlice({
     logout: (state) => {
       state.user = null;
       state.token = null;
+      state.refreshToken = null;
       Cookies.remove("token");
+      Cookies.remove("refreshToken");
     },
     clearErrors: (state) => {
       state.error = null;
     },
   },
   extraReducers: (builder) => {
-    // Login cases
     builder
       .addCase(login.pending, (state) => {
         state.loading = true;
@@ -103,19 +98,19 @@ const authSlice = createSlice({
         state.loading = false;
         state.user = action.payload.user;
         state.token = action.payload.token;
+        state.refreshToken = action.payload.refreshToken;
       })
       .addCase(login.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       })
-      // Register cases
       .addCase(register.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(register.fulfilled, (state, action) => {
         state.loading = false;
-        state.user = action.payload?.user || null;
+        state.user = action.payload.user;
       })
       .addCase(register.rejected, (state, action) => {
         state.loading = false;

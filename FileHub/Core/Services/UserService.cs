@@ -80,6 +80,7 @@ namespace Application.Services
             if (result.Succeeded)
             {
                 var token = await _tokenService.GenerateJwtTokenAsync(user);
+
                 return new ApiResponse<TokenDTO>(true, "Login successfully", token);
             }
 
@@ -163,7 +164,6 @@ namespace Application.Services
             );
         }
 
-
         public async Task<ApiResponse<ApplicationUser>> FindByIdAsync(string userId)
         {
             var user = await _userManager.FindByIdAsync(userId);
@@ -193,7 +193,6 @@ namespace Application.Services
             }
             return new ApiResponse<ApplicationUser>(true, "Email found", user);
         }
-
 
         public async Task<ApiResponse<IdentityResult>> UpdateUserProfile(UpdateDTO updateDTO)
         {
@@ -240,7 +239,6 @@ namespace Application.Services
                 return new ApiResponse<TokenDTO>(false, "Invalid Google token.", null);
             }
 
-            // Check if the user exists
             var user = await _userManager.FindByEmailAsync(payload.Email);
             if (user == null)
             {
@@ -260,16 +258,14 @@ namespace Application.Services
                 await _userManager.AddToRoleAsync(user, "User");
             }
 
-            // Generate JWT token
             var token = await _tokenService.GenerateJwtTokenAsync(user);
             return new ApiResponse<TokenDTO>(true, "Login successfully", token);
         }
 
-
-
-        public async Task SignOutAsync()
+        public async Task<ApiResponse<object>> SignOutAsync()
         {
             await _signInManager.SignOutAsync();
+            return new ApiResponse<object>(true, "Signed out successfully", null);
         }
 
 
