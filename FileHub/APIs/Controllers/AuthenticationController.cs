@@ -115,6 +115,7 @@ namespace APIs.Controllers
             return Ok(new { Message = "Successfully logged out" });
         }
 
+        [Authorize]
         [HttpPost("refresh-token")]
         public async Task<IActionResult> RefreshToken([FromBody] string refreshToken)
         {

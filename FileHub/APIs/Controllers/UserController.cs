@@ -1,5 +1,6 @@
 ﻿using Application.DTOs;
 using Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace APIs.Controllers
@@ -26,6 +27,7 @@ namespace APIs.Controllers
             return Ok(user);
         }
 
+        [Authorize]
         [HttpGet("username/{username}")]
         public async Task<IActionResult> GetUserByName(string username)
         {
@@ -37,6 +39,7 @@ namespace APIs.Controllers
             return Ok(user);
         }
 
+        [Authorize]
         [HttpPut("update-profile")]
         public async Task<IActionResult> UpdateUserProfile([FromBody] UpdateDTO user)
         {

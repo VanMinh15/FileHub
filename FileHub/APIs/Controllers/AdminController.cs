@@ -1,10 +1,12 @@
 ﻿using Application.DTOs;
 using Application.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace APIs.Controllers
 {
+    [Authorize(Roles = "Admin")]
     [Route("api/[controller]")]
     [ApiController]
     public class AdminController : ControllerBase
@@ -58,7 +60,7 @@ namespace APIs.Controllers
                 return NotFound(new ApiResponse<string>(false, "Role not found", model.RoleName));
             }
             var usedRole = await _userManager.GetUsersInRoleAsync(model.RoleName);
-            if (usedRole != null)
+            if (usedRole.Count > 0)
             {
                 return BadRequest(new ApiResponse<string>(false, "Role exists, cant be deleted", null));
             }
