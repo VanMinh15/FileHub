@@ -99,23 +99,6 @@ namespace APIs.Controllers
         }
 
         [Authorize]
-        [HttpPost("logout")]
-        public async Task<IActionResult> Logout()
-        {
-            await _userService.SignOutAsync();
-
-            Response.Cookies.Delete("AuthCookie", new CookieOptions
-            {
-                HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.None,
-                Path = "/"
-            });
-
-            return Ok(new { Message = "Successfully logged out" });
-        }
-
-        [Authorize]
         [HttpPost("refresh-token")]
         public async Task<IActionResult> RefreshToken([FromBody] string refreshToken)
         {

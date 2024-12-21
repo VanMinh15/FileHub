@@ -27,9 +27,9 @@ function MainContent() {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-20">
-        <div className="flex flex-col lg:flex-row items-center justify-between gap-20">
+        <div className="flex flex-col lg:flex-row items-start justify-between gap-20">
           {/* Hero Section */}
-          <div className="lg:w-1/2 space-y-8">
+          <div className="lg:w-1/2 space-y-8 flex flex-col justify-center min-h-[calc(100vh-360px)]">
             <h1 className="text-6xl font-bold text-gray-900 dark:text-white">
               Welcome to{" "}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-gray-500">

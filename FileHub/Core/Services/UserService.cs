@@ -94,7 +94,7 @@ namespace Application.Services
         {
             var response = new ApiResponse<object>(
                 success: true,
-                message: "If your email is registered, you will receive a password reset link.",
+                message: "If your email is registered, you will receive a password reset link",
                 data: null,
                 errors: null
             );
@@ -261,13 +261,6 @@ namespace Application.Services
             var token = await _tokenService.GenerateJwtTokenAsync(user);
             return new ApiResponse<TokenDTO>(true, "Login successfully", token);
         }
-
-        public async Task<ApiResponse<object>> SignOutAsync()
-        {
-            await _signInManager.SignOutAsync();
-            return new ApiResponse<object>(true, "Signed out successfully", null);
-        }
-
 
     }
 }

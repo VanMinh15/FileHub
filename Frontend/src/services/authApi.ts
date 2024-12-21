@@ -23,6 +23,14 @@ interface RegisterResponse extends ApiResponseData {
   user: UserData;
 }
 
+interface ForgotPasswordResponse extends ApiResponseData {
+  message: string;
+}
+
+interface ResetPasswordResponse extends ApiResponseData {
+  message: string;
+}
+
 const api = axios.create({
   baseURL: "https://localhost:7145/api/Authentication",
   headers: {
@@ -127,4 +135,45 @@ export const register = async (
   }
 };
 
+export const forgotPassword = async (
+  email: string
+): Promise<ApiResponse<ForgotPasswordResponse>> => {
+  try {
+    const response = await api.post<ApiResponse<ForgotPasswordResponse>>(
+      "/forgot-password",
+      { email }
+    );
+    return response.data;
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error.response?.data?.message || "Failed to send reset email",
+      data: undefined,
+      errors: error.response?.data?.errors || [],
+    };
+  }
+};
+
+export const resetPassword = async (
+  token: string,
+  newPassword: string
+): Promise<ApiResponse<ResetPasswordResponse>> => {
+  try {
+    const response = await api.post<ApiResponse<ResetPasswordResponse>>(
+      "/reset-password",
+      {
+        token,
+        newPassword,
+      }
+    );
+    return response.data;
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error.response?.data?.message || "Password reset failed",
+      data: undefined,
+      errors: error.response?.data?.errors || [],
+    };
+  }
+};
 export default api;
