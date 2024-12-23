@@ -236,7 +236,7 @@ namespace Application.Services
             var payload = await _tokenService.ValidateGoogleTokenAsync(externalLoginDTO.IdToken);
             if (payload == null)
             {
-                return new ApiResponse<TokenDTO>(false, "Invalid Google token.", null);
+                return new ApiResponse<TokenDTO>(false, "Invalid Google token", null);
             }
 
             var user = await _userManager.FindByEmailAsync(payload.Email);
@@ -246,13 +246,13 @@ namespace Application.Services
                 {
                     UserName = payload.Email,
                     Email = payload.Email,
-                    EmailConfirmed = true,
+                    Status = UserStatus.Active.Name
                 };
 
                 var result = await _userManager.CreateAsync(user);
                 if (!result.Succeeded)
                 {
-                    return new ApiResponse<TokenDTO>(false, "User created failed.", null, result.Errors.Select(e => e.Description));
+                    return new ApiResponse<TokenDTO>(false, "User created failed", null, result.Errors.Select(e => e.Description));
                 }
 
                 await _userManager.AddToRoleAsync(user, "User");

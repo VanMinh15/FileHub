@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useDispatch } from "react-redux";
-import { login } from "@/store/slices/authSlice";
+import { login, googleLogin } from "@/store/slices/authSlice";
 import { AppDispatch } from "@/store/store";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
@@ -8,6 +8,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { EMAIL_REGEX, PASSWORD_REGEX } from "@/utils/validation";
+import {
+  useGoogleLogin,
+  googleLogout,
+  CredentialResponse,
+  TokenResponse,
+  GoogleLogin,
+} from "@react-oauth/google";
 
 interface LoginProps {
   loading: boolean;
@@ -68,8 +75,25 @@ export function LoginForm({
     }
   };
 
-  const handleGoogleLogin = () => {
-    console.log("Google login clicked");
+  const handleGoogleSuccess = async (
+    credentialResponse: CredentialResponse
+  ) => {
+    if (!credentialResponse.credential) {
+      addToast("Login failed", "No credentials received", "destructive");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await dispatch(googleLogin(credentialResponse.credential)).unwrap();
+      addToast("Login successful", undefined, "success");
+    } catch (err: any) {
+      const errorMessage =
+        typeof err === "string" ? err : "Google login failed";
+      addToast("Login failed", errorMessage, "destructive");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -166,15 +190,23 @@ export function LoginForm({
         </div>
       </div>
 
-      <Button
-        variant="outline"
-        className="w-full"
-        onClick={handleGoogleLogin}
-        disabled={loading || isSubmitting}
-      >
-        <FcGoogle className="mr-2 h-5 w-5" />
-        Continue with Google
-      </Button>
+      <div className="flex justify-center">
+        <GoogleLogin
+          onSuccess={handleGoogleSuccess}
+          onError={() => {
+            addToast(
+              "Google login failed",
+              "Authentication failed",
+              "destructive"
+            );
+          }}
+          theme="outline"
+          shape="rectangular"
+          text="continue_with"
+          useOneTap={false}
+          width={300}
+        />
+      </div>
     </form>
   );
 }

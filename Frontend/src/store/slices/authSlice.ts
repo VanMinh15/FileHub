@@ -1,5 +1,9 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { login as apiLogin, register as apiRegister } from "@/services/authApi";
+import {
+  login as apiLogin,
+  register as apiRegister,
+  googleLogin as apiGoogleLogin,
+} from "@/services/authApi";
 import Cookies from "js-cookie";
 
 interface AuthState {
@@ -47,6 +51,22 @@ export const login = createAsyncThunk(
       };
     } catch (err: any) {
       return rejectWithValue(err.message);
+    }
+  }
+);
+
+export const googleLogin = createAsyncThunk(
+  "auth/googleLogin",
+  async (credential: string, { rejectWithValue }) => {
+    try {
+      const response = await apiGoogleLogin(credential);
+      if (response.success && response.data) {
+        Cookies.set("token", response.data.token);
+        return response.data;
+      }
+      return rejectWithValue(response.message);
+    } catch (error: any) {
+      return rejectWithValue(error.message);
     }
   }
 );
@@ -113,6 +133,19 @@ const authSlice = createSlice({
         state.user = action.payload.user;
       })
       .addCase(register.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+      .addCase(googleLogin.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(googleLogin.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = action.payload.user;
+        state.token = action.payload.token;
+      })
+      .addCase(googleLogin.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       });

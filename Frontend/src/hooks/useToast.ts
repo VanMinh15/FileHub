@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useState } from "react";
 
 import type { ToastActionElement, ToastProps } from "@/components/ui/toast";
 
@@ -186,3 +187,37 @@ function useToast() {
 }
 
 export { useToast, toast };
+
+type CustomToastProps = {
+  id: string;
+  title?: string;
+  description?: string;
+  variant?: "default" | "destructive" | "success";
+};
+
+export function useCustomToast() {
+  const [toasts, setToasts] = useState<CustomToastProps[]>([]);
+
+  const toast = {
+    success: ({
+      title,
+      description,
+    }: Omit<CustomToastProps, "id" | "variant">) => {
+      setToasts((toasts) => [
+        ...toasts,
+        { id: crypto.randomUUID(), title, description, variant: "success" },
+      ]);
+    },
+    error: ({
+      title,
+      description,
+    }: Omit<CustomToastProps, "id" | "variant">) => {
+      setToasts((toasts) => [
+        ...toasts,
+        { id: crypto.randomUUID(), title, description, variant: "destructive" },
+      ]);
+    },
+  };
+
+  return { toasts, toast };
+}

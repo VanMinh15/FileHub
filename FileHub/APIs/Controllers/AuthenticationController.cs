@@ -41,7 +41,7 @@ namespace APIs.Controllers
             return BadRequest(result);
         }
 
-        [HttpPost("ExternalLogin")]
+        [HttpPost("google-login")]
         public async Task<IActionResult> ExternalLogin([FromBody] ExternalLoginDTO externalLoginDTO)
         {
             var response = await _userService.ExternalLoginAsync(externalLoginDTO);

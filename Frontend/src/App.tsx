@@ -2,6 +2,9 @@ import { Cloud } from "lucide-react";
 import { ModeToggle } from "@/components/layout/mode-toggle";
 import { ThemeProvider } from "@/components/layout/theme-provider";
 import { AuthForm } from "@/components/common/auth";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { ResetPasswordForm } from "@/components/common/resetPass";
+import { Toaster } from "@/components/ui/toaster";
 
 function MainContent() {
   return (
@@ -53,11 +56,17 @@ function MainContent() {
 
 function App() {
   return (
-    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-      <div className="min-h-screen bg-background text-foreground">
-        <MainContent />
-      </div>
-    </ThemeProvider>
+    <BrowserRouter>
+      <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+        <div className="min-h-screen bg-background text-foreground">
+          <Routes>
+            <Route path="/" element={<MainContent />} />
+            <Route path="/reset-password" element={<ResetPasswordForm />} />
+          </Routes>
+          <Toaster />
+        </div>
+      </ThemeProvider>
+    </BrowserRouter>
   );
 }
 

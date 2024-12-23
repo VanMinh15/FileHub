@@ -19,6 +19,12 @@ interface LoginResponse extends ApiResponseData, TokenData {
   user: UserData;
 }
 
+interface GoogleLoginResponse extends ApiResponseData {
+  token: string;
+  refreshToken: string;
+  user: UserData;
+}
+
 interface RegisterResponse extends ApiResponseData {
   user: UserData;
 }
@@ -110,6 +116,25 @@ export const login = async (
   }
 };
 
+export const googleLogin = async (
+  idToken: string
+): Promise<ApiResponse<GoogleLoginResponse>> => {
+  try {
+    const response = await api.post<ApiResponse<GoogleLoginResponse>>(
+      "/google-login",
+      { idToken }
+    );
+    return response.data;
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error.response?.data?.message || "Google login failed",
+      data: undefined,
+      errors: error.response?.data?.errors || [],
+    };
+  }
+};
+
 export const register = async (
   email: string,
   userName: string,
@@ -155,15 +180,19 @@ export const forgotPassword = async (
 };
 
 export const resetPassword = async (
+  email: string,
   token: string,
-  newPassword: string
+  newPassword: string,
+  confirmPassword: string
 ): Promise<ApiResponse<ResetPasswordResponse>> => {
   try {
     const response = await api.post<ApiResponse<ResetPasswordResponse>>(
       "/reset-password",
       {
+        email,
         token,
         newPassword,
+        confirmPassword,
       }
     );
     return response.data;
