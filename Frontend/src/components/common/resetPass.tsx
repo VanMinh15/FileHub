@@ -1,42 +1,35 @@
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { resetPasswordSchema, ResetPasswordFormData } from "@/utils/validation";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { resetPassword } from "@/services/authApi";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ModeToggle } from "@/components/layout/mode-toggle";
 import { useToast } from "@/hooks/useToast";
-
-const resetPasswordSchema = z
-  .object({
-    password: z.string().min(6, "Password must be at least 6 characters"),
-    confirmPassword: z.string(),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords must match",
-    path: ["confirmPassword"],
-  });
-
-type ResetPasswordForm = z.infer<typeof resetPasswordSchema>;
+import { Lock, Eye, EyeOff } from "lucide-react";
+import { Header } from "@/components/layout/Header";
 
 export const ResetPasswordForm = () => {
   const navigate = useNavigate();
-  const { toast } = useToast(); // Add this hook
+  const { toast } = useToast();
   const [searchParams] = useSearchParams();
   const email = searchParams.get("email") || "";
   const token = searchParams.get("token") || "";
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<ResetPasswordForm>({
+  } = useForm<ResetPasswordFormData>({
     resolver: zodResolver(resetPasswordSchema),
   });
 
-  const onSubmit = async (data: ResetPasswordForm) => {
+  const onSubmit = async (data: ResetPasswordFormData) => {
     try {
       const response = await resetPassword(
         email,
@@ -70,13 +63,9 @@ export const ResetPasswordForm = () => {
 
   return (
     <div className="min-h-screen bg-background relative">
-      {/* Background grid with lowest z-index */}
       <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-10 z-0 pointer-events-none"></div>
 
-      {/* Mode Toggle with highest z-index */}
-      <div className="fixed right-4 top-4 z-50">
-        <ModeToggle />
-      </div>
+      <Header />
 
       {/* Form container */}
       <div className="relative z-10 flex min-h-screen items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
@@ -91,13 +80,29 @@ export const ResetPasswordForm = () => {
             <div className="space-y-4 rounded-md">
               <div className="space-y-2">
                 <Label htmlFor="password">New Password</Label>
-                <Input
-                  {...register("password")}
-                  id="password"
-                  type="password"
-                  placeholder="Enter new password"
-                  className={errors.password ? "border-red-500" : ""}
-                />
+                <div className="relative">
+                  <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    {...register("password")}
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Enter new password"
+                    className={`pl-10 pr-10 ${
+                      errors.password ? "border-red-500" : ""
+                    }`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
                 {errors.password && (
                   <p className="text-sm text-red-500">
                     {errors.password.message}
@@ -107,13 +112,29 @@ export const ResetPasswordForm = () => {
 
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword">Confirm Password</Label>
-                <Input
-                  {...register("confirmPassword")}
-                  id="confirmPassword"
-                  type="password"
-                  placeholder="Confirm new password"
-                  className={errors.confirmPassword ? "border-red-500" : ""}
-                />
+                <div className="relative">
+                  <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    {...register("confirmPassword")}
+                    id="confirmPassword"
+                    type={showConfirmPassword ? "text" : "password"}
+                    placeholder="Confirm new password"
+                    className={`pl-10 pr-10 ${
+                      errors.confirmPassword ? "border-red-500" : ""
+                    }`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
                 {errors.confirmPassword && (
                   <p className="text-sm text-red-500">
                     {errors.confirmPassword.message}

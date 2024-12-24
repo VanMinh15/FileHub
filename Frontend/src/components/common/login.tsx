@@ -1,20 +1,15 @@
-import { useState } from "react";
 import { useDispatch } from "react-redux";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { login, googleLogin } from "@/store/slices/authSlice";
 import { AppDispatch } from "@/store/store";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
-import { FcGoogle } from "react-icons/fc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { EMAIL_REGEX, PASSWORD_REGEX } from "@/utils/validation";
-import {
-  useGoogleLogin,
-  googleLogout,
-  CredentialResponse,
-  TokenResponse,
-  GoogleLogin,
-} from "@react-oauth/google";
+import { GoogleLogin } from "@react-oauth/google";
+import { loginSchema, LoginFormData } from "@/utils/validation";
 
 interface LoginProps {
   loading: boolean;
@@ -32,58 +27,32 @@ export function LoginForm({
   setShowResetPassword,
 }: LoginProps) {
   const dispatch = useDispatch<AppDispatch>();
-  const [formData, setFormData] = useState({ email: "", password: "" });
-  const [formErrors, setFormErrors] = useState<{
-    email?: string;
-    password?: string;
-  }>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const validateForm = () => {
-    const errors: { email?: string; password?: string } = {};
-    if (!formData.email) {
-      errors.email = "Email is required";
-    } else if (!EMAIL_REGEX.test(formData.email)) {
-      errors.email = "Please enter a valid email address";
-    }
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+  });
 
-    if (!formData.password) {
-      errors.password = "Password is required";
-    } else if (!PASSWORD_REGEX.test(formData.password)) {
-      errors.password = "Password must be at least 6 characters";
-    }
-
-    setFormErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validateForm()) return;
-
-    setIsSubmitting(true);
+  const onSubmit = async (data: LoginFormData) => {
     try {
-      await dispatch(login(formData)).unwrap();
+      await dispatch(login(data)).unwrap();
       addToast("Login successful", undefined, "success");
-      setFormData({ email: "", password: "" });
     } catch (err: any) {
       const errorMessage = typeof err === "string" ? err : "Login failed";
       addToast("Login failed", errorMessage, "destructive");
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
-  const handleGoogleSuccess = async (
-    credentialResponse: CredentialResponse
-  ) => {
+  const handleGoogleSuccess = async (credentialResponse: any) => {
     if (!credentialResponse.credential) {
       addToast("Login failed", "No credentials received", "destructive");
       return;
     }
 
-    setIsSubmitting(true);
     try {
       await dispatch(googleLogin(credentialResponse.credential)).unwrap();
       addToast("Login successful", undefined, "success");
@@ -91,32 +60,25 @@ export function LoginForm({
       const errorMessage =
         typeof err === "string" ? err : "Google login failed";
       addToast("Login failed", errorMessage, "destructive");
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div className="space-y-2">
         <div className="space-y-1">
           <div className="relative [&:has(input:-webkit-autofill)]:text-black">
             <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
+              {...register("email")}
               type="email"
               placeholder="Email"
               className="pl-10 border-black [&:-webkit-autofill]:!bg-white [&:-webkit-autofill]:!bg-opacity-0 [-webkit-text-fill-color:inherit] [&:-webkit-autofill]:shadow-[0_0_0px_1000px_transparent_inset]"
               disabled={loading || isSubmitting}
-              value={formData.email}
-              onChange={(e) => {
-                setFormData({ ...formData, email: e.target.value });
-                if (formErrors.email)
-                  setFormErrors({ ...formErrors, email: undefined });
-              }}
             />
           </div>
-          {formErrors.email && (
-            <p className="text-xs text-red-500">{formErrors.email}</p>
+          {errors.email && (
+            <p className="text-xs text-red-500">{errors.email.message}</p>
           )}
         </div>
 
@@ -124,21 +86,16 @@ export function LoginForm({
           <div className="relative [&:has(input:-webkit-autofill)]:text-black">
             <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
+              {...register("password")}
               type={showPassword ? "text" : "password"}
               placeholder="Password"
               className="pl-10 pr-10 border-black [&:-webkit-autofill]:!bg-white [&:-webkit-autofill]:!bg-opacity-0 [-webkit-text-fill-color:inherit] [&:-webkit-autofill]:shadow-[0_0_0px_1000px_transparent_inset]"
               disabled={loading || isSubmitting}
-              value={formData.password}
-              onChange={(e) => {
-                setFormData({ ...formData, password: e.target.value });
-                if (formErrors.password)
-                  setFormErrors({ ...formErrors, password: undefined });
-              }}
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-3 text-muted-foreground group-[:has(input:-webkit-autofill)]:text-black hover:text-foreground"
+              className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
             >
               {showPassword ? (
                 <EyeOff className="h-4 w-4" />
@@ -147,8 +104,8 @@ export function LoginForm({
               )}
             </button>
           </div>
-          {formErrors.password && (
-            <p className="text-xs text-red-500">{formErrors.password}</p>
+          {errors.password && (
+            <p className="text-xs text-red-500">{errors.password.message}</p>
           )}
         </div>
       </div>

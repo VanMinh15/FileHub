@@ -43,7 +43,6 @@ namespace Application.Services
             try
             {
                 using var client = new SmtpClient();
-
                 await client.ConnectAsync(smtpHost, smtpPort, SecureSocketOptions.StartTlsWhenAvailable);
 
                 if (!string.IsNullOrEmpty(smtpUser))

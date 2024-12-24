@@ -4,6 +4,7 @@ using Application.Interfaces;
 using Application.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
+using RazorLight;
 
 namespace Application.Services
 {
@@ -106,19 +107,26 @@ namespace Application.Services
             }
 
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-
             var resetLink = $"{_configuration["AppUrl"]}/reset-password?email={Uri.EscapeDataString(user.Email)}&token={Uri.EscapeDataString(token)}";
 
+            var model = new EmailViewModel
+            {
+                UserName = user.UserName,
+                ResetLink = resetLink,
+                TokenExpiryTime = "15 minutes"
+            };
+
+            var engine = new RazorLightEngineBuilder()
+            .UseFileSystemProject(Path.Combine(Directory.GetCurrentDirectory(), "Templates"))
+            .UseMemoryCachingProvider()
+            .Build();
+
+            string templatePath = "ResetPasswordEmailTemplate.cshtml";
+            string emailBody = await engine.CompileRenderAsync(templatePath, model);
             var subject = "Reset Your Password";
-            var body = $@"
-                <h2>Reset Your Password</h2>
-                <p>Please click the link below to reset your password:</p>
-                <a href=""{resetLink}"">Reset Password</a>
-                <p>If you didn't request this, please ignore this email.</p>
-                <p>This link will expire in 24 hours.</p>";
             try
             {
-                await _emailSender.SendEmailAsync(user.Email, subject, body);
+                await _emailSender.SendEmailAsync(user.Email, subject, emailBody);
             }
             catch (Exception ex)
             {

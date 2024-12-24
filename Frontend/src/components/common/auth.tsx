@@ -3,9 +3,9 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { LoginForm } from "./login";
-import { RegisterForm } from "./register";
-import { ForgotPassword } from "./forgotPass";
+import { LoginForm } from "./Login";
+import { RegisterForm } from "./Register";
+import { ForgotPassword } from "./ForgotPass";
 import {
   Toast,
   ToastTitle,
