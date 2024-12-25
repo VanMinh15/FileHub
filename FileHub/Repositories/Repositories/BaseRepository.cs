@@ -6,8 +6,8 @@ namespace Infrastructure.Repositories
 {
     public class BaseRepository<T> : IBaseRepository<T> where T : class
     {
-        private readonly DbContext _context;
-        private readonly DbSet<T> _dbSet;
+        protected readonly DbContext _context;
+        protected readonly DbSet<T> _dbSet;
 
         public BaseRepository(DbContext context)
         {
@@ -57,11 +57,11 @@ namespace Infrastructure.Repositories
             return await _dbSet.ToListAsync();
         }
 
-        public async Task<PaginatedList<T>> GetPaginatedAsync(int pageIndex, int pageSize)
+        public async Task<PaginatedList<U>> GetPaginatedAsync<U>(IQueryable<U> query, int pageIndex, int pageSize)
         {
-            var totalCount = await _dbSet.CountAsync();
-            var items = await _dbSet.Skip((pageIndex - 1) * pageSize).Take(pageSize).ToListAsync();
-            return new PaginatedList<T>(items, totalCount, pageIndex, pageSize);
+            var totalCount = await query.CountAsync();
+            var items = await query.Skip((pageIndex - 1) * pageSize).Take(pageSize).ToListAsync();
+            return new PaginatedList<U>(items, totalCount, pageIndex, pageSize);
         }
     }
 }

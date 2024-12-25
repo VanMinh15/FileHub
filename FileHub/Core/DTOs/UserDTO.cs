@@ -54,9 +54,23 @@ namespace Application.DTOs
         [Compare("NewPassword")]
         public required string ConfirmPassword { get; set; }
     }
+
     public class ExternalLoginDTO
     {
         public string Provider { get; set; } = "Google";
         public string IdToken { get; set; } = string.Empty;
+    }
+
+    public class UserResponseDTO
+    {
+        [Required]
+        public required string Id { get; set; }
+        public string? UserName { get; set; }
+        public string? Email { get; set; }
+    }
+    public class SearchReceiverDTO
+    {
+        public string? Keyword { get; set; }
+        public required string SenderID { get; set; }
     }
 }

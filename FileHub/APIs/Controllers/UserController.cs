@@ -1,7 +1,9 @@
 ﻿using Application.DTOs;
 using Application.Interfaces;
+using Application.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace APIs.Controllers
 {
@@ -37,6 +39,24 @@ namespace APIs.Controllers
                 return NotFound();
             }
             return Ok(user);
+        }
+
+        [Authorize]
+        [HttpPost("search-receiver")]
+        public async Task<IActionResult> SearchReceiverByEmailOrUserName([FromBody] SearchReceiverDTO searchReceiverDTO, [FromQuery] PaginationParams paginationParams)
+        {
+            var senderId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(senderId))
+            {
+                return Unauthorized();
+            }
+
+            var users = await _userService.FindReceiver(searchReceiverDTO.Keyword, senderId, paginationParams);
+            if (users == null)
+            {
+                return NotFound();
+            }
+            return Ok(users);
         }
 
         [Authorize]

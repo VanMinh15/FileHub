@@ -4,7 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-	      <PreserveCompilationContext>true</PreserveCompilationContext>
+	<PreserveCompilationContext>true</PreserveCompilationContext>
     <UserSecretsId>523d23fe-6b90-44ab-885a-5f3892606ed8</UserSecretsId>
   </PropertyGroup>
 

@@ -12,6 +12,7 @@ namespace Application.Services
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly ITokenService _tokenService;
         private readonly IEmailSender _emailSender;
         private readonly IConfiguration _configuration;
@@ -19,6 +20,7 @@ namespace Application.Services
         public UserService(
        UserManager<ApplicationUser> userManager,
        SignInManager<ApplicationUser> signInManager,
+       IUnitOfWork unitOfWork,
        ITokenService tokenService,
        IEmailSender emailSender,
        IConfiguration configuration)
@@ -28,6 +30,7 @@ namespace Application.Services
             _tokenService = tokenService;
             _emailSender = emailSender;
             _configuration = configuration;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<ApiResponse<IdentityResult>> Register(RegisterDTO registerDTO)
@@ -172,34 +175,46 @@ namespace Application.Services
             );
         }
 
-        public async Task<ApiResponse<ApplicationUser>> FindByIdAsync(string userId)
+        public async Task<ApiResponse<UserResponseDTO>> FindByIdAsync(string userId)
         {
-            var user = await _userManager.FindByIdAsync(userId);
-            if (user == null)
+            var userResponse = await _unitOfWork.Users.FindByIdAsync(userId);
+            if (!userResponse.Success)
             {
-                return new ApiResponse<ApplicationUser>(false, "User not found", null);
+                return new ApiResponse<UserResponseDTO>(false, userResponse.Message, null);
             }
-            return new ApiResponse<ApplicationUser>(true, "User found", user);
+            return new ApiResponse<UserResponseDTO>(true, userResponse.Message, userResponse.Data);
         }
 
-        public async Task<ApiResponse<ApplicationUser>> FindByNameAsync(string userName)
+        public async Task<ApiResponse<UserResponseDTO>> FindByNameAsync(string userName)
         {
-            var user = await _userManager.FindByNameAsync(userName);
-            if (user == null)
+            var userResponse = await _unitOfWork.Users.FindByNameAsync(userName);
+            if (!userResponse.Success)
             {
-                return new ApiResponse<ApplicationUser>(false, "User not found", null);
+                return new ApiResponse<UserResponseDTO>(false, userResponse.Message, null);
             }
-            return new ApiResponse<ApplicationUser>(true, "User found", user);
+            return new ApiResponse<UserResponseDTO>(true, userResponse.Message, userResponse.Data);
         }
 
-        public async Task<ApiResponse<ApplicationUser>> FindByEmailAsync(string email)
+        public async Task<ApiResponse<UserResponseDTO>> FindByEmailAsync(string email)
         {
-            var user = await _userManager.FindByEmailAsync(email);
-            if (user == null)
+            var userResponse = await _unitOfWork.Users.FindByEmailAsync(email);
+            if (!userResponse.Success)
             {
-                return new ApiResponse<ApplicationUser>(false, "Email not found", null);
+                return new ApiResponse<UserResponseDTO>(false, userResponse.Message, null);
             }
-            return new ApiResponse<ApplicationUser>(true, "Email found", user);
+            return new ApiResponse<UserResponseDTO>(true, userResponse.Message, userResponse.Data);
+        }
+
+        public async Task<ApiResponse<PaginatedList<UserResponseDTO>>> FindReceiver(string? keyword, string senderId, PaginationParams paginationParams)
+        {
+            var receivers = await _unitOfWork.Users.SearchReceiverByEmailOrUserName(keyword, senderId, paginationParams);
+
+            if (receivers == null || !receivers.Any())
+            {
+                return new ApiResponse<PaginatedList<UserResponseDTO>>(false, "Receiver not found", null);
+            }
+
+            return new ApiResponse<PaginatedList<UserResponseDTO>>(true, "Receiver found", receivers);
         }
 
         public async Task<ApiResponse<IdentityResult>> UpdateUserProfile(UpdateDTO updateDTO)

@@ -1,6 +1,8 @@
-﻿namespace Application.Interfaces
+﻿using Application.Entities;
+
+namespace Application.Interfaces
 {
-    public interface IFolderRepository
+    public interface IFolderRepository : IBaseRepository<Folder>
     {
     }
 }
