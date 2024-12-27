@@ -52,7 +52,6 @@ namespace Application.Services
                 await _unitOfWork.Files.AddAsync(newFile);
                 await _unitOfWork.CompleteAsync();
 
-
                 return new ApiResponse<object>(true, "File uploaded successfully", null);
             }
             catch (Exception e)

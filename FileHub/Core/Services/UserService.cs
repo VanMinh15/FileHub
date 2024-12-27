@@ -18,19 +18,19 @@ namespace Application.Services
         private readonly IConfiguration _configuration;
 
         public UserService(
-       UserManager<ApplicationUser> userManager,
-       SignInManager<ApplicationUser> signInManager,
-       IUnitOfWork unitOfWork,
-       ITokenService tokenService,
-       IEmailSender emailSender,
-       IConfiguration configuration)
+            UserManager<ApplicationUser> userManager,
+            SignInManager<ApplicationUser> signInManager,
+            IUnitOfWork unitOfWork,
+            ITokenService tokenService,
+            IEmailSender emailSender,
+            IConfiguration configuration)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _unitOfWork = unitOfWork;
             _tokenService = tokenService;
             _emailSender = emailSender;
             _configuration = configuration;
-            _unitOfWork = unitOfWork;
         }
 
         public async Task<ApiResponse<IdentityResult>> Register(RegisterDTO registerDTO)
@@ -53,7 +53,7 @@ namespace Application.Services
             if (result.Succeeded)
             {
                 await _userManager.AddToRoleAsync(user, "User");
-                return new ApiResponse<IdentityResult>(true, "Register succesfully", result);
+                return new ApiResponse<IdentityResult>(true, "Register successfully", result);
             }
             else
             {
@@ -254,8 +254,8 @@ namespace Application.Services
             var result = await _userManager.UpdateAsync(user);
 
             return result.Succeeded
-        ? new ApiResponse<IdentityResult>(true, "Profile updated successfully", result)
-        : new ApiResponse<IdentityResult>(false, "Update failed", result, result.Errors.Select(e => e.Description));
+                ? new ApiResponse<IdentityResult>(true, "Profile updated successfully", result)
+                : new ApiResponse<IdentityResult>(false, "Update failed", result, result.Errors.Select(e => e.Description));
         }
 
         public async Task<ApiResponse<TokenDTO>> ExternalLoginAsync(ExternalLoginDTO externalLoginDTO)
@@ -289,6 +289,6 @@ namespace Application.Services
             var token = await _tokenService.GenerateJwtTokenAsync(user);
             return new ApiResponse<TokenDTO>(true, "Login successfully", token);
         }
-
     }
 }
+
