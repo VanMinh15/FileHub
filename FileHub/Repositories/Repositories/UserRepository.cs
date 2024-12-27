@@ -33,7 +33,6 @@ namespace Infrastructure.Repositories
             return new ApiResponse<UserResponseDTO>(true, "User found", userDTO);
         }
 
-
         public async Task<ApiResponse<UserResponseDTO>> FindByNameAsync(string userName)
         {
             var user = await _userManager.FindByNameAsync(userName);
@@ -104,8 +103,6 @@ namespace Infrastructure.Repositories
                 paginatedResult.PageSize
             );
         }
-
-
 
     }
 }

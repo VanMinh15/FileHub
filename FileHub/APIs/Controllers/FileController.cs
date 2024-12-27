@@ -1,5 +1,6 @@
 ﻿using Application.DTOs;
 using Application.Interfaces;
+using Application.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
@@ -30,6 +31,24 @@ namespace APIs.Controllers
             {
                 return Ok(result);
             }
+            return BadRequest(result);
+        }
+
+        [HttpGet("recent-activities")]
+        public async Task<IActionResult> GetRecentActivities([FromQuery] PaginationParams paginationParams)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized();
+            }
+
+            var result = await _fileService.GetRecentActivitiesAsync(userId, paginationParams);
+            if (result.Success)
+            {
+                return Ok(result);
+            }
+
             return BadRequest(result);
         }
     }

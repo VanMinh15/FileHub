@@ -1,4 +1,5 @@
-﻿using Application.Enums;
+﻿using Application.DTOs;
+using Application.Enums;
 using Application.Interfaces;
 using Application.Models;
 using Microsoft.AspNetCore.Http;
@@ -57,8 +58,28 @@ namespace Application.Services
             catch (Exception e)
             {
                 return new ApiResponse<object>(false, $"Error uploading file: {e.Message}", null);
-
             }
         }
+
+        public async Task<ApiResponse<PaginatedList<RecentActivityDTO>>> GetRecentActivitiesAsync(string userId, PaginationParams paginationParams)
+        {
+            var fileActivities = await _unitOfWork.Files.GetRecentFiles(userId, paginationParams);
+            var folderActivities = await _unitOfWork.Folders.GetRecentFolders(userId, paginationParams);
+
+            var combinedActivities = fileActivities.Concat(folderActivities)
+                .OrderByDescending(a => a.CreatedAt)
+                .ToList();
+
+            var paginatedActivities = new PaginatedList<RecentActivityDTO>(
+                combinedActivities.Skip((paginationParams.PageIndex - 1) * paginationParams.PageSize).Take(paginationParams.PageSize).ToList(),
+                combinedActivities.Count,
+                paginationParams.PageIndex,
+                paginationParams.PageSize
+            );
+
+            return new ApiResponse<PaginatedList<RecentActivityDTO>>(true, "Recent activities retrieved successfully", paginatedActivities);
+        }
     }
+
+
 }
