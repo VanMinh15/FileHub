@@ -1,6 +1,8 @@
-﻿namespace Application.Interfaces
+﻿using File = Application.Entities.File;
+
+namespace Application.Interfaces
 {
-    public interface IFileRepository
+    public interface IFileRepository : IBaseRepository<File>
     {
     }
 }

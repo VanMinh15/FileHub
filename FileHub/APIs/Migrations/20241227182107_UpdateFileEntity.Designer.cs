@@ -3,6 +3,7 @@ using System;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace APIs.Migrations
 {
     [DbContext(typeof(FileHubContext))]
-    partial class FileHubContextModelSnapshot : ModelSnapshot
+    [Migration("20241227182107_UpdateFileEntity")]
+    partial class UpdateFileEntity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -72,6 +75,10 @@ namespace APIs.Migrations
                         .HasMaxLength(450)
                         .HasColumnType("character varying(450)");
 
+                    b.Property<string>("StoragePath")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<int>("VersionNumber")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
@@ -127,6 +134,11 @@ namespace APIs.Migrations
                         .IsRequired()
                         .HasMaxLength(450)
                         .HasColumnType("character varying(450)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.HasKey("Id")
                         .HasName("Folders_pkey");

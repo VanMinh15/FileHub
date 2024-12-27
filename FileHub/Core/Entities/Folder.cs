@@ -20,8 +20,6 @@ public partial class Folder
 
     public DateTime? CreatedAt { get; set; }
 
-    public DateTime? UpdatedAt { get; set; }
-
     public virtual ICollection<File> Files { get; set; } = new List<File>();
 
     public virtual ICollection<Folder> InverseParentFolder { get; set; } = new List<Folder>();

@@ -9,6 +9,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "./store/store";
 import { useEffect } from "react";
 import { initializeFromToken } from "@/store/slices/authSlice";
+import { FileHub } from "./pages/FileHub";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, isAuthenticated } = useSelector(
@@ -72,6 +73,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/filehub/:userId"
+              element={
+                <ProtectedRoute>
+                  <FileHub />
                 </ProtectedRoute>
               }
             />

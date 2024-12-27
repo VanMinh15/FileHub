@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Http;
+using System.ComponentModel.DataAnnotations;
 
 namespace Application.DTOs
 {
@@ -68,9 +69,16 @@ namespace Application.DTOs
         public string? UserName { get; set; }
         public string? Email { get; set; }
     }
+    public class UploadFileDTO
+    {
+        public required IFormFile File { get; set; }
+        public required string ReceiverID { get; set; }
+        public string? Description { get; set; }
+    }
     public class SearchReceiverDTO
     {
         public string? Keyword { get; set; }
         public required string SenderID { get; set; }
     }
+
 }

@@ -1,22 +1,34 @@
 import { Header } from "../components/layout/Header";
 import { FileUpload } from "../components/filehub/FileUpload";
 import { FileHistory } from "../components/filehub/FileHistory";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
+import { Button } from "../components/ui/button";
+import { ArrowLeft } from "lucide-react";
 
 export const FileHub = () => {
   const { userId } = useParams();
+  const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <Header />
-      <main className="container mx-auto p-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
-            <FileHistory receiverId={userId} />
-          </div>
-          <div className="lg:col-span-1">
-            <FileUpload receiverId={userId} />
-          </div>
+      <div className="container mx-auto px-6 py-4">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate("/dash-board")}
+          className="flex items-center gap-2"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to Dashboard
+        </Button>
+      </div>
+      <main className="flex-1 container mx-auto px-6 flex flex-col">
+        <div className="flex-1 overflow-auto mb-4">
+          <FileHistory receiverId={userId} />
+        </div>
+        <div className="sticky bottom-0 bg-background pt-4">
+          <FileUpload receiverId={userId} />
         </div>
       </main>
     </div>

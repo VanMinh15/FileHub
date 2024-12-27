@@ -1,6 +1,10 @@
-﻿namespace Application.Interfaces
+﻿using Application.Models;
+using Microsoft.AspNetCore.Http;
+
+namespace Application.Interfaces
 {
-    internal interface IFileService
+    public interface IFileService
     {
+        Task<ApiResponse<object>> UploadFileAsync(IFormFile file, string senderID, string receiverID);
     }
 }

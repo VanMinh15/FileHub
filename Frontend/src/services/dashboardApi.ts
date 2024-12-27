@@ -6,7 +6,6 @@ import { logout } from "@/store/slices/authSlice";
 
 interface ReceiverSearchParams {
   keyword: string;
-  senderID: string;
   pageIndex: number;
   pageSize: number;
 }
@@ -78,27 +77,14 @@ export const searchReceivers = async (
   params: ReceiverSearchParams
 ): Promise<ApiResponse<Receiver[]>> => {
   try {
-    const { keyword, senderID, pageIndex, pageSize } = params;
-    const currentState = store.getState();
-    const userID = senderID || currentState.auth.user?.id;
-
-    if (!userID) {
-      return {
-        success: false,
-        message: "User ID is required",
-        data: [],
-        errors: ["Missing user ID"],
-      };
-    }
+    const { keyword, pageIndex, pageSize } = params;
 
     const response = await dashboardApi.post(
       "/search-receiver",
-      {
-        keyword: keyword || "",
-        senderID: userID,
-      },
+      {},
       {
         params: {
+          keyword: keyword || "",
           PageIndex: pageIndex,
           PageSize: pageSize,
         },

@@ -14,8 +14,6 @@ public partial class File
 
     public string? FileType { get; set; }
 
-    public string StoragePath { get; set; } = null!;
-
     public byte[] Content { get; set; } = null!;
 
     public int VersionNumber { get; set; }
@@ -29,8 +27,6 @@ public partial class File
     public string Permission { get; set; } = null!;
 
     public DateTime? CreatedAt { get; set; }
-
-    public DateTime? UpdatedAt { get; set; }
 
     public virtual Folder? Folder { get; set; }
     public virtual ApplicationUser Sender { get; set; }

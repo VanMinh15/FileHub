@@ -43,7 +43,7 @@ namespace APIs.Controllers
 
         [Authorize]
         [HttpPost("search-receiver")]
-        public async Task<IActionResult> SearchReceiverByEmailOrUserName([FromBody] SearchReceiverDTO searchReceiverDTO, [FromQuery] PaginationParams paginationParams)
+        public async Task<IActionResult> SearchReceiverByEmailOrUserName([FromQuery] string keyword, [FromQuery] PaginationParams paginationParams)
         {
             var senderId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(senderId))
@@ -51,7 +51,7 @@ namespace APIs.Controllers
                 return Unauthorized();
             }
 
-            var users = await _userService.FindReceiver(searchReceiverDTO.Keyword, senderId, paginationParams);
+            var users = await _userService.FindReceiver(keyword, senderId, paginationParams);
             if (users == null)
             {
                 return NotFound();

@@ -5,6 +5,7 @@ using Application.Services;
 using Infrastructure;
 using Infrastructure.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -17,6 +18,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddTransient<IEmailSender, EmailSender>();
 
@@ -137,6 +139,11 @@ builder.Services.AddCors(options =>
             .AllowAnyMethod()
             .AllowCredentials());
 });
+
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = builder.Configuration.GetValue<long>("FileUpload:MaxFileSize");
+});
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -144,6 +151,7 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    app.UseDeveloperExceptionPage();
 }
 
 app.UseHttpsRedirection();
