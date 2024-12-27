@@ -1,6 +1,6 @@
 import axios from "axios";
 import Cookies from "js-cookie";
-import { ApiResponse, ApiResponseData } from "@/utils/api-helpers";
+import { ApiResponse, ApiResponseData } from "@/utils/api-types";
 import { store } from "@/store/store";
 import { logout } from "@/store/slices/authSlice";
 

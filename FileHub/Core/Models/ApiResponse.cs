@@ -1,4 +1,4 @@
-﻿namespace Application.DTOs
+﻿namespace Application.Models
 {
     public class ApiResponse<T>
     {

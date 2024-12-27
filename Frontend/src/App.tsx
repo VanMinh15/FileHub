@@ -1,9 +1,26 @@
 import { ThemeProvider } from "@/components/layout/theme-provider";
 import { AuthForm } from "@/components/common/Auth";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { ResetPasswordForm } from "@/components/common/ResetPass";
 import { Toaster } from "@/components/ui/toaster";
 import { Header } from "@/components/layout/Header";
+import { Dashboard } from "./pages/Dashboard";
+import { useSelector, useDispatch } from "react-redux";
+import { RootState } from "./store/store";
+import { useEffect } from "react";
+import { initializeFromToken } from "@/store/slices/authSlice";
+
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, isAuthenticated } = useSelector(
+    (state: RootState) => state.auth
+  );
+
+  if (!isAuthenticated || !user) {
+    return <Navigate to="/" replace />;
+  }
+
+  return <>{children}</>;
+};
 
 function MainContent() {
   return (
@@ -36,6 +53,12 @@ function MainContent() {
 }
 
 function App() {
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(initializeFromToken());
+  }, [dispatch]);
+
   return (
     <BrowserRouter>
       <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
@@ -43,6 +66,15 @@ function App() {
           <Routes>
             <Route path="/" element={<MainContent />} />
             <Route path="/reset-password" element={<ResetPasswordForm />} />
+            <Route path="/dash-board" element={<Dashboard />} />
+            <Route
+              path="/dash-board"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
           </Routes>
           <Toaster />
         </div>

@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import {
   login as apiLogin,
   register as apiRegister,
@@ -6,12 +6,15 @@ import {
 } from "@/services/authApi";
 import Cookies from "js-cookie";
 
+interface UserData {
+  id: string;
+  email: string;
+  userName: string;
+}
+
 interface AuthState {
-  user: {
-    id: string;
-    email: string;
-    userName: string;
-  } | null;
+  isAuthenticated: boolean;
+  user: UserData | null;
   token: string | null;
   refreshToken: string | null;
   loading: boolean;
@@ -19,11 +22,36 @@ interface AuthState {
 }
 
 const initialState: AuthState = {
+  isAuthenticated: false,
   user: null,
   token: Cookies.get("token") || null,
   refreshToken: Cookies.get("refreshToken") || null,
   loading: false,
   error: null,
+};
+
+const decodeToken = (token: string): UserData | null => {
+  try {
+    const base64Url = token.split(".")[1];
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split("")
+        .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+        .join("")
+    );
+    const payload = JSON.parse(jsonPayload);
+    return {
+      id: payload.sub,
+      email: payload.email || "",
+      userName:
+        payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"] ||
+        "",
+    };
+  } catch (e) {
+    console.error("Error decoding token:", e);
+    return null;
+  }
 };
 
 export const login = createAsyncThunk(
@@ -38,14 +66,18 @@ export const login = createAsyncThunk(
         return rejectWithValue(response.message || "Login failed");
       }
 
-      const { token, refreshToken, user } = response.data;
+      const { token, refreshToken } = response.data;
+      const userData = decodeToken(token);
 
-      // Store tokens in cookies
+      if (!userData) {
+        return rejectWithValue("Invalid token data");
+      }
+
       Cookies.set("token", token);
       Cookies.set("refreshToken", refreshToken);
 
       return {
-        user,
+        user: userData,
         token,
         refreshToken,
       };
@@ -97,7 +129,12 @@ const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
+    loginSuccess: (state, action: PayloadAction<UserData>) => {
+      state.isAuthenticated = true;
+      state.user = action.payload;
+    },
     logout: (state) => {
+      state.isAuthenticated = false;
       state.user = null;
       state.token = null;
       state.refreshToken = null;
@@ -106,6 +143,18 @@ const authSlice = createSlice({
     },
     clearErrors: (state) => {
       state.error = null;
+    },
+    initializeFromToken: (state) => {
+      const token = Cookies.get("token");
+      if (token) {
+        const userData = decodeToken(token);
+        if (userData) {
+          state.user = userData;
+          state.isAuthenticated = true;
+          state.token = token;
+          state.refreshToken = Cookies.get("refreshToken") || null;
+        }
+      }
     },
   },
   extraReducers: (builder) => {
@@ -116,6 +165,7 @@ const authSlice = createSlice({
       })
       .addCase(login.fulfilled, (state, action) => {
         state.loading = false;
+        state.isAuthenticated = true;
         state.user = action.payload.user;
         state.token = action.payload.token;
         state.refreshToken = action.payload.refreshToken;
@@ -130,6 +180,7 @@ const authSlice = createSlice({
       })
       .addCase(register.fulfilled, (state, action) => {
         state.loading = false;
+        state.isAuthenticated = true;
         state.user = action.payload.user;
       })
       .addCase(register.rejected, (state, action) => {
@@ -142,6 +193,7 @@ const authSlice = createSlice({
       })
       .addCase(googleLogin.fulfilled, (state, action) => {
         state.loading = false;
+        state.isAuthenticated = true;
         state.user = action.payload.user;
         state.token = action.payload.token;
       })
@@ -152,5 +204,6 @@ const authSlice = createSlice({
   },
 });
 
-export const { logout, clearErrors } = authSlice.actions;
+export const { logout, clearErrors, loginSuccess, initializeFromToken } =
+  authSlice.actions;
 export default authSlice.reducer;

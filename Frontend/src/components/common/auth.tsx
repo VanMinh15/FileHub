@@ -15,6 +15,7 @@ import {
   ToastViewport,
 } from "@/components/ui/toast";
 import { cn } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
 
 interface ToastData {
   id: number;
@@ -24,6 +25,7 @@ interface ToastData {
 }
 
 export function AuthForm() {
+  const navigate = useNavigate();
   const { loading } = useSelector((state: RootState) => state.auth);
   const [toasts, setToasts] = useState<ToastData[]>([]);
   const [activeTab, setActiveTab] = useState<"login" | "register" | "forgot">(
@@ -38,6 +40,11 @@ export function AuthForm() {
     const id = Date.now();
     setToasts((prev) => [...prev, { id, title, description, variant }]);
     setTimeout(() => removeToast(id), 5000);
+
+    // Navigate to dashboard if login is successful
+    if (title === "Login successful" && variant === "success") {
+      setTimeout(() => navigate("/dash-board"), 1000);
+    }
   };
 
   const removeToast = (id: number) => {

@@ -1,4 +1,4 @@
-﻿using Application.DTOs;
+﻿using Application.Models;
 using System.Net;
 
 namespace APIs.Middlewares

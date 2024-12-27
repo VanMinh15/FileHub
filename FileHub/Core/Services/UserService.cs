@@ -68,6 +68,11 @@ namespace Application.Services
             if (user == null)
                 return new ApiResponse<TokenDTO>(false, "Invalid login attempt", null);
 
+            if (user.Status != UserStatus.Active.Name)
+            {
+                return new ApiResponse<TokenDTO>(false, "Account is banned", null);
+            }
+
             if (await _userManager.IsLockedOutAsync(user))
             {
                 var lockoutEnd = await _userManager.GetLockoutEndDateAsync(user);
