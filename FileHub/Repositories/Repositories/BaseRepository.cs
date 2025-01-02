@@ -59,9 +59,19 @@ namespace Infrastructure.Repositories
 
         public async Task<PaginatedList<U>> GetPaginatedAsync<U>(IQueryable<U> query, int pageIndex, int pageSize)
         {
-            var totalCount = await query.CountAsync();
-            var items = await query.Skip((pageIndex - 1) * pageSize).Take(pageSize).ToListAsync();
-            return new PaginatedList<U>(items, totalCount, pageIndex, pageSize);
+            try
+            {
+                var totalCount = await query.CountAsync();
+                var items = await query
+                    .Skip((pageIndex - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
+                return new PaginatedList<U>(items, totalCount, pageIndex, pageSize);
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
         }
     }
 }

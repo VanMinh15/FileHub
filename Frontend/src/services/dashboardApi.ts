@@ -1,8 +1,9 @@
 import axios from "axios";
 import Cookies from "js-cookie";
-import { ApiResponse } from "@/utils/api-types";
+import { ApiResponse } from "@/types/api-types";
 import { store } from "@/store/store";
 import { logout } from "@/store/slices/authSlice";
+import { Activity } from "@/types/activity-types";
 
 interface ReceiverSearchParams {
   keyword: string;
@@ -14,6 +15,11 @@ interface Receiver {
   id: string;
   userName: string;
   email: string;
+}
+
+interface PaginationParams {
+  pageIndex: number;
+  pageSize: number;
 }
 
 const dashboardApi = axios.create({
@@ -96,6 +102,36 @@ export const searchReceivers = async (
     return {
       success: false,
       message: error.response?.data?.message || "Failed to search receivers",
+      data: [],
+      errors: error.response?.data?.errors || [],
+    };
+  }
+};
+
+export const getRecentActivities = async (
+  params: PaginationParams
+): Promise<ApiResponse<Activity[]>> => {
+  try {
+    const response = await axios.get(
+      "https://localhost:7145/api/File/recent-activities",
+      {
+        headers: {
+          Authorization: `Bearer ${Cookies.get("token")}`,
+        },
+        params: {
+          PageIndex: params.pageIndex,
+          PageSize: params.pageSize,
+        },
+      }
+    );
+    return response.data;
+  } catch (error: any) {
+    console.error("Failed to fetch activities:", error);
+    return {
+      success: false,
+      message:
+        error.response?.data?.message ||
+        "Failed to fetch recent activities. Please try again later.",
       data: [],
       errors: error.response?.data?.errors || [],
     };

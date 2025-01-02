@@ -1,6 +1,5 @@
 ﻿using Application.DTOs;
 using Application.Interfaces;
-using Application.Models;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using File = Application.Entities.File;
@@ -14,23 +13,22 @@ namespace Infrastructure.Repositories
         {
         }
 
-        public async Task<PaginatedList<RecentActivityDTO>> GetRecentFiles(string userId, PaginationParams paginationParams)
+        public IQueryable<RecentActivityDTO> GetRecentFiles(string userId)
         {
-            var query = _dbSet
+            return _dbSet
                 .AsNoTracking()
                 .Where(f => f.SenderId == userId || f.ReceiverId == userId)
-                .OrderByDescending(f => f.CreatedAt)
                 .Select(f => new RecentActivityDTO
                 {
                     Id = f.Id,
                     Name = f.Name,
                     Type = "File",
                     Action = f.SenderId == userId ? "Sent" : "Received",
+                    UserName = f.SenderId == userId ? f.Receiver.UserName : f.Sender.UserName,
                     CreatedAt = f.CreatedAt
                 });
-
-            return await GetPaginatedAsync(query, paginationParams.PageIndex, paginationParams.PageSize);
         }
+
     }
 
 }

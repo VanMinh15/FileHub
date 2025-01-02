@@ -63,19 +63,17 @@ namespace Application.Services
 
         public async Task<ApiResponse<PaginatedList<RecentActivityDTO>>> GetRecentActivitiesAsync(string userId, PaginationParams paginationParams)
         {
-            var fileActivities = await _unitOfWork.Files.GetRecentFiles(userId, paginationParams);
-            var folderActivities = await _unitOfWork.Folders.GetRecentFolders(userId, paginationParams);
+            var fileActivities = _unitOfWork.Files.GetRecentFiles(userId);
+            var folderActivities = _unitOfWork.Folders.GetRecentFolders(userId);
 
-            var combinedActivities = fileActivities.Concat(folderActivities)
-                .OrderByDescending(a => a.CreatedAt)
-                .ToList();
+            var combinedActivities = fileActivities
+                .Concat(folderActivities)
+                .OrderByDescending(a => a.CreatedAt);
 
-            var paginatedActivities = new PaginatedList<RecentActivityDTO>(
-                combinedActivities.Skip((paginationParams.PageIndex - 1) * paginationParams.PageSize).Take(paginationParams.PageSize).ToList(),
-                combinedActivities.Count,
-                paginationParams.PageIndex,
-                paginationParams.PageSize
-            );
+            var paginatedActivities = await _unitOfWork.Files.GetPaginatedAsync(
+                combinedActivities,
+            paginationParams.PageIndex,
+            paginationParams.PageSize);
 
             return new ApiResponse<PaginatedList<RecentActivityDTO>>(true, "Recent activities retrieved successfully", paginatedActivities);
         }

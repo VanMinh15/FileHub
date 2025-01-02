@@ -1,7 +1,6 @@
 ﻿using Application.DTOs;
 using Application.Entities;
 using Application.Interfaces;
-using Application.Models;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,22 +12,20 @@ namespace Infrastructure.Repositories
         {
         }
 
-        public async Task<PaginatedList<RecentActivityDTO>> GetRecentFolders(string userId, PaginationParams paginationParams)
+        public IQueryable<RecentActivityDTO> GetRecentFolders(string userId)
         {
-            var query = _dbSet
+            return _dbSet
                 .AsNoTracking()
                 .Where(f => f.SenderId == userId || f.ReceiverId == userId)
-                .OrderByDescending(f => f.CreatedAt)
                 .Select(f => new RecentActivityDTO
                 {
                     Id = f.Id,
                     Name = f.Name,
                     Type = "Folder",
                     Action = f.SenderId == userId ? "Sent" : "Received",
+                    UserName = f.SenderId == userId ? f.Receiver.UserName : f.Sender.UserName,
                     CreatedAt = f.CreatedAt
                 });
-
-            return await GetPaginatedAsync(query, paginationParams.PageIndex, paginationParams.PageSize);
         }
     }
 }
