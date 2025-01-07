@@ -9,8 +9,11 @@ namespace Infrastructure.Repositories
 {
     public class FileRepository : BaseRepository<File>, IFileRepository
     {
+        private new readonly FileHubContext _context;
+
         public FileRepository(FileHubContext context) : base(context)
         {
+            _context = context;
         }
 
         public IQueryable<RecentActivityDTO> GetRecentFiles(string userId)
@@ -29,6 +32,21 @@ namespace Infrastructure.Repositories
                 });
         }
 
-    }
+        public IQueryable<File> GetFilesWithFriend(string senderID, string receiverID, DateTime? before = null)
+        {
+            var query = _dbSet
+                .AsNoTracking()
+                .Include(f => f.Sender)
+                .Include(f => f.Receiver)
+                .Where(f => (f.SenderId == senderID && f.ReceiverId == receiverID)
+                         || (f.SenderId == receiverID && f.ReceiverId == senderID));
 
+            if (before.HasValue)
+            {
+                query = query.Where(f => f.CreatedAt < before);
+            }
+
+            return query;
+        }
+    }
 }

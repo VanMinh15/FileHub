@@ -1,4 +1,5 @@
-﻿namespace Application.DTOs
+﻿
+namespace Application.DTOs
 {
     public class RecentActivityDTO
     {
@@ -9,4 +10,5 @@
         public required string UserName { get; set; }
         public DateTime? CreatedAt { get; set; }
     }
+
 }

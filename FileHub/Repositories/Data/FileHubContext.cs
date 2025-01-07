@@ -43,6 +43,10 @@ public partial class FileHubContext : IdentityDbContext<ApplicationUser>
 
             entity.Property(e => e.Id).UseIdentityColumn();
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.HasIndex(e => e.CreatedAt)
+        .HasDatabaseName("IX_Files_CreatedAt");
+
             entity.Property(e => e.FileType).HasMaxLength(50);
             entity.Property(e => e.Name).HasMaxLength(255);
             entity.Property(e => e.Permission).HasMaxLength(20);
@@ -71,6 +75,9 @@ public partial class FileHubContext : IdentityDbContext<ApplicationUser>
             entity.HasKey(e => e.Id).HasName("Folders_pkey");
 
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.HasIndex(e => e.CreatedAt)
+        .HasDatabaseName("IX_Folders_CreatedAt");
+
             entity.Property(e => e.Name).HasMaxLength(255);
             entity.Property(e => e.Permission).HasMaxLength(20);
             entity.Property(e => e.ReceiverId).HasMaxLength(450);

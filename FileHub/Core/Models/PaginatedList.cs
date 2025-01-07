@@ -25,4 +25,18 @@
         public int PageIndex { get; set; } = 1;
         public int PageSize { get; set; } = 10;
     }
+
+    public class InfiniteScrollList<T>
+    {
+        public List<T> Items { get; set; }
+        public bool HasMore { get; set; }
+        public DateTime? NextTimestamp { get; set; }
+
+        public InfiniteScrollList(List<T> items, bool hasMore, DateTime? nextTimestamp)
+        {
+            Items = items;
+            HasMore = hasMore;
+            NextTimestamp = nextTimestamp;
+        }
+    }
 }

@@ -46,7 +46,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 
 builder.Services.Configure<DataProtectionTokenProviderOptions>(options =>
 {
-    options.TokenLifespan = TimeSpan.FromMinutes(15);
+    options.TokenLifespan = TimeSpan.FromMinutes(30);
 });
 
 builder.Services.AddAuthentication(options =>
@@ -86,7 +86,7 @@ builder.Services.AddDbContext<FileHubContext>(options =>
 {
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"),
         b => b.MigrationsAssembly("APIs"));
-});
+}, ServiceLifetime.Scoped);
 
 builder.Services.ConfigureApplicationCookie(options =>
 {

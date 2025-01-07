@@ -52,5 +52,26 @@ namespace APIs.Controllers
 
             return BadRequest(result);
         }
+
+        [HttpGet("chat-history")]
+        public async Task<IActionResult> GetChatHistory([FromQuery] ChatHistoryDTO chatHistoryDTO)
+        {
+            var senderID = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(senderID))
+            {
+                return Unauthorized();
+            }
+            var result = await _fileService.GetChatHistoryAsync(
+                senderID,
+                chatHistoryDTO.ReceiverID,
+                chatHistoryDTO.Before,
+                chatHistoryDTO.PageSize);
+
+            if (result.Success)
+            {
+                return Ok(result);
+            }
+            return BadRequest(result);
+        }
     }
 }
