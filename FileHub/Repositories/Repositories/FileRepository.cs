@@ -9,11 +9,8 @@ namespace Infrastructure.Repositories
 {
     public class FileRepository : BaseRepository<File>, IFileRepository
     {
-        private new readonly FileHubContext _context;
-
         public FileRepository(FileHubContext context) : base(context)
         {
-            _context = context;
         }
 
         public IQueryable<RecentActivityDTO> GetRecentFiles(string userId)

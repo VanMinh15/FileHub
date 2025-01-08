@@ -1,5 +1,4 @@
 ﻿using Application.DTOs;
-using Application.Entities;
 using Application.Enums;
 using Application.Interfaces;
 using Application.Models;
@@ -84,98 +83,78 @@ namespace Application.Services
         {
             try
             {
-                var fileActivities = await _unitOfWork.Files.GetFilesWithFriend(senderID, receiverID, before)
-            .Select(f => new
-            {
-                Entity = (object)f,
-                Type = "File",
-                CreatedAt = f.CreatedAt
-            })
-            .ToListAsync();
+                var activities = await CreateChatActivitiesQuery(senderID, receiverID, before)
+                    .OrderByDescending(x => x.CreatedAt)
+                    .Take(pageSize + 1)
+                    .ToListAsync();
 
-                var folderActivities = await _unitOfWork.Folders.GetFoldersWithFriend(senderID, receiverID, before)
-            .Select(f => new
-            {
-                Entity = (object)f,
-                Type = "Folder",
-                CreatedAt = f.CreatedAt
-            })
-            .ToListAsync();
-
-                var combinedActivities = fileActivities
-            .Concat(folderActivities)
-            .OrderByDescending(a => a.CreatedAt);
-
-                var items = combinedActivities
-            .Take(pageSize + 1)
-            .Select(a => CreateChatActivityDTO(a.Entity, a.Type, senderID))
-            .ToList();
-
-                var hasMore = items.Count > pageSize;
+                var hasMore = activities.Count > pageSize;
                 if (hasMore)
                 {
-                    items.RemoveAt(items.Count - 1);
+                    activities.RemoveAt(activities.Count - 1);
                 }
 
-                var nextTimestamp = items.LastOrDefault()?.CreatedAt;
+                var result = new InfiniteScrollList<ChatActivityDTO>(
+                    activities,
+                    hasMore,
+                    activities.LastOrDefault()?.CreatedAt
+                );
 
-                var result = new InfiniteScrollList<ChatActivityDTO>(items, hasMore, nextTimestamp);
-
-                return new ApiResponse<InfiniteScrollList<ChatActivityDTO>>(true, "Recent activities retrieved successfully", result);
+                return new ApiResponse<InfiniteScrollList<ChatActivityDTO>>(
+                    true,
+                    "Chat history retrieved successfully",
+                    result);
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                return new ApiResponse<InfiniteScrollList<ChatActivityDTO>>(false, $"Error retrieving chat history: {e.Message}", null);
+                return new ApiResponse<InfiniteScrollList<ChatActivityDTO>>(
+                    false,
+                    $"Error retrieving chat history: {ex.Message}",
+                    null);
             }
         }
 
-
-        private static ChatActivityDTO CreateChatActivityDTO(object entity, string type, string senderID)
+        private IQueryable<ChatActivityDTO> CreateChatActivitiesQuery(string senderID, string receiverID, DateTime? before)
         {
-            if (type == "File" && entity is File file)
-            {
-                return new ChatActivityDTO
+            var filesQuery = _unitOfWork.Files.GetFilesWithFriend(senderID, receiverID, before)
+                .Select(f => new ChatActivityDTO
                 {
-                    Id = file.Id,
-                    Name = file.Name,
+                    Id = f.Id,
+                    Name = f.Name,
                     Type = "File",
-                    Action = file.SenderId == senderID ? "Sent" : "Received",
-                    UserName = file.SenderId == senderID ? file.Receiver.UserName : file.Sender.UserName,
-                    CreatedAt = file.CreatedAt,
-                    FileType = file.FileType,
-                    Size = file.FileSize,
-                    Permission = file.Permission,
+                    Action = f.SenderId == senderID ? "Sent" : "Received",
+                    UserName = f.SenderId == senderID ? f.Receiver.UserName : f.Sender.UserName,
+                    CreatedAt = f.CreatedAt,
+                    FileType = f.FileType,
+                    Size = f.FileSize,
+                    Permission = f.Permission,
                     Metadata = new Dictionary<string, string>
-            {
-                { "FileType", file.FileType ?? string.Empty },
-                { "Size", file.FileSize.ToString() },
-                { "Version", file.VersionNumber.ToString() }
-            }
-                };
-            }
-            else if (type == "Folder" && entity is Folder folder)
-            {
-                return new ChatActivityDTO
+                    {
+                    { "FileType", f.FileType ?? string.Empty },
+                    { "Size", f.FileSize.ToString() },
+                    { "Version", f.VersionNumber.ToString() }
+                    }
+                });
+
+            var foldersQuery = _unitOfWork.Folders.GetFoldersWithFriend(senderID, receiverID, before)
+                .Select(f => new ChatActivityDTO
                 {
-                    Id = folder.Id,
-                    Name = folder.Name,
+                    Id = f.Id,
+                    Name = f.Name,
                     Type = "Folder",
-                    Action = folder.SenderId == senderID ? "Sent" : "Received",
-                    UserName = folder.SenderId == senderID ? folder.Receiver.UserName : folder.Sender.UserName,
-                    CreatedAt = folder.CreatedAt,
-                    ItemCount = folder.Files.Count,
-                    Permission = folder.Permission,
+                    Action = f.SenderId == senderID ? "Sent" : "Received",
+                    UserName = f.SenderId == senderID ? f.Receiver.UserName : f.Sender.UserName,
+                    CreatedAt = f.CreatedAt,
+                    ItemCount = f.Files.Count,
+                    Permission = f.Permission,
                     Metadata = new Dictionary<string, string>
-            {
-                { "ItemCount", folder.Files.Count.ToString() },
-                { "Permission", folder.Permission }
-            }
-                };
-            }
-            else
-            {
-                throw new InvalidOperationException("Unknown entity type");
-            }
+                    {
+                    { "ItemCount", f.Files.Count.ToString() },
+                    { "Permission", f.Permission }
+                    }
+                });
+
+            return filesQuery.Concat(foldersQuery);
         }
     }
 }
