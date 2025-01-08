@@ -22,6 +22,30 @@ interface PaginationParams {
   pageSize: number;
 }
 
+interface ChatActivity {
+  id: number;
+  name: string;
+  type: "File" | "Folder";
+  action: string;
+  userName: string;
+  createdAt: string;
+  fileType?: string;
+  size?: number;
+  itemCount?: number | null;
+  permission: string;
+  metadata: {
+    FileType?: string;
+    Size?: string;
+    Version: string;
+  };
+}
+
+interface InfiniteScrollList<T> {
+  items: T[];
+  hasMore: boolean;
+  lastTimestamp: string | undefined;
+}
+
 const dashboardApi = axios.create({
   baseURL: "https://localhost:7145/api/User",
   headers: {
@@ -133,6 +157,42 @@ export const getRecentActivities = async (
         error.response?.data?.message ||
         "Failed to fetch recent activities. Please try again later.",
       data: [],
+      errors: error.response?.data?.errors || [],
+    };
+  }
+};
+
+export const getChatHistory = async (
+  senderId: string,
+  receiverId: string,
+  before?: string,
+  pageSize: number = 20
+): Promise<ApiResponse<InfiniteScrollList<ChatActivity>>> => {
+  try {
+    const response = await axios.get(
+      "https://localhost:7145/api/File/chat-history",
+      {
+        headers: {
+          Authorization: `Bearer ${Cookies.get("token")}`,
+        },
+        params: {
+          senderID: senderId,
+          receiverID: receiverId,
+          before,
+          pageSize,
+        },
+      }
+    );
+    return response.data;
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error.response?.data?.message || "Failed to fetch chat history",
+      data: {
+        items: [],
+        hasMore: false,
+        lastTimestamp: undefined,
+      },
       errors: error.response?.data?.errors || [],
     };
   }

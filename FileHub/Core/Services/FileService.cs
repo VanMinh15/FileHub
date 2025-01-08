@@ -83,10 +83,10 @@ namespace Application.Services
         {
             try
             {
-                var activities = await CreateChatActivitiesQuery(senderID, receiverID, before)
-                    .OrderByDescending(x => x.CreatedAt)
-                    .Take(pageSize + 1)
-                    .ToListAsync();
+                var activities = (await CreateChatActivitiesQuery(senderID, receiverID, before))
+               .OrderByDescending(x => x.CreatedAt)
+               .Take(pageSize + 1)
+               .ToList();
 
                 var hasMore = activities.Count > pageSize;
                 if (hasMore)
@@ -114,9 +114,13 @@ namespace Application.Services
             }
         }
 
-        private IQueryable<ChatActivityDTO> CreateChatActivitiesQuery(string senderID, string receiverID, DateTime? before)
+        private async Task<IEnumerable<ChatActivityDTO>> CreateChatActivitiesQuery(
+       string senderID,
+       string receiverID,
+       DateTime? before)
         {
-            var filesQuery = _unitOfWork.Files.GetFilesWithFriend(senderID, receiverID, before)
+            // Execute queries separately and combine results in memory
+            var files = await _unitOfWork.Files.GetFilesWithFriend(senderID, receiverID, before)
                 .Select(f => new ChatActivityDTO
                 {
                     Id = f.Id,
@@ -134,9 +138,10 @@ namespace Application.Services
                     { "Size", f.FileSize.ToString() },
                     { "Version", f.VersionNumber.ToString() }
                     }
-                });
+                })
+                .ToListAsync();
 
-            var foldersQuery = _unitOfWork.Folders.GetFoldersWithFriend(senderID, receiverID, before)
+            var folders = await _unitOfWork.Folders.GetFoldersWithFriend(senderID, receiverID, before)
                 .Select(f => new ChatActivityDTO
                 {
                     Id = f.Id,
@@ -152,9 +157,11 @@ namespace Application.Services
                     { "ItemCount", f.Files.Count.ToString() },
                     { "Permission", f.Permission }
                     }
-                });
+                })
+                .ToListAsync();
 
-            return filesQuery.Concat(foldersQuery);
+            // Combine and order in memory
+            return files.Concat(folders);
         }
     }
 }

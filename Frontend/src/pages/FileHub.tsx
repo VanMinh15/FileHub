@@ -12,22 +12,21 @@ export const FileHub = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Header />
-      <div className="container mx-auto px-6 py-4">
+      <div className="container max-w-5xl mx-auto px-6 py-4">
         <Button
           variant="ghost"
-          size="sm"
           onClick={() => navigate("/dash-board")}
-          className="flex items-center gap-2"
+          className="flex items-center gap-3 hover:bg-accent px-6 text-base"
         >
-          <ArrowLeft className="h-4 w-4" />
+          <ArrowLeft className="h-5 w-5" />
           Back to Dashboard
         </Button>
       </div>
-      <main className="flex-1 container mx-auto px-6 flex flex-col">
-        <div className="flex-1 overflow-auto mb-4">
+      <main className="flex-1 container max-w-5xl mx-auto px-6 flex flex-col">
+        <div className="flex-1 overflow-auto mb-6 rounded-lg border shadow-sm">
           <FileHistory receiverId={userId} />
         </div>
-        <div className="sticky bottom-0 bg-background pt-4">
+        <div className="sticky bottom-0 bg-background pt-4 pb-6">
           <FileUpload receiverId={userId} />
         </div>
       </main>

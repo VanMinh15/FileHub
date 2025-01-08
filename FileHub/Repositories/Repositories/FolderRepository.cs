@@ -8,9 +8,12 @@ namespace Infrastructure.Repositories
 {
     public class FolderRepository : BaseRepository<Folder>, IFolderRepository
     {
+        private readonly FileHubContext _context;
 
         public FolderRepository(FileHubContext context) : base(context)
         {
+            _context = context;
+
         }
 
         public IQueryable<RecentActivityDTO> GetRecentFolders(string userId)
