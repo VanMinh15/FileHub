@@ -1,6 +1,7 @@
 ﻿using Application.DTOs;
 using Application.Interfaces;
 using Application.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
@@ -18,6 +19,8 @@ namespace APIs.Controllers
         }
 
         [HttpPost("upload-file")]
+        [Authorize]
+
         public async Task<IActionResult> UploadFile([FromForm] UploadFileDTO uploadFileDTO)
         {
             var senderID = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -36,6 +39,8 @@ namespace APIs.Controllers
         }
 
         [HttpGet("recent-activities")]
+        [Authorize]
+
         public async Task<IActionResult> GetRecentActivities([FromQuery] PaginationParams paginationParams)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -54,6 +59,7 @@ namespace APIs.Controllers
         }
 
         [HttpGet("chat-history")]
+        [Authorize]
         public async Task<IActionResult> GetChatHistory([FromQuery] ChatHistoryDTO chatHistoryDTO)
         {
             var senderID = User.FindFirstValue(ClaimTypes.NameIdentifier);

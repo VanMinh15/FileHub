@@ -43,11 +43,11 @@ namespace Application.Services
             var userRoles = await _userManager.GetRolesAsync(user);
 
             var authClaims = new List<Claim>
-            {
-                new Claim(JwtRegisteredClaimNames.Sub, user.Id),
-                new Claim(ClaimTypes.Name, user.UserName ?? ""),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            };
+                {
+                    new Claim(JwtRegisteredClaimNames.Sub, user.Id),
+                    new Claim(ClaimTypes.Name, user.UserName ?? ""),
+                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                };
 
             foreach (var role in userRoles)
             {
@@ -75,10 +75,10 @@ namespace Application.Services
             var key = Encoding.UTF8.GetBytes(_jwtSettings.SecretKey);
 
             var authClaims = new List<Claim>
-            {
-                new Claim(JwtRegisteredClaimNames.Sub, user.Id),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            };
+                {
+                    new Claim(JwtRegisteredClaimNames.Sub, user.Id),
+                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                };
 
             var authSigningKey = new SymmetricSecurityKey(key);
 
@@ -103,6 +103,12 @@ namespace Application.Services
 
             try
             {
+                var jwtToken2 = tokenHandler.ReadJwtToken(refreshToken);
+
+                // Log or inspect claims for debugging
+                var claims = jwtToken2.Claims.ToList();
+                var subClaim = jwtToken2.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Sub)?.Value;
+
                 var principal = tokenHandler.ValidateToken(refreshToken, new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,
@@ -121,7 +127,7 @@ namespace Application.Services
                     return new ApiResponse<TokenDTO>(false, "Invalid token", null);
                 }
 
-                var userId = principal.FindFirstValue(JwtRegisteredClaimNames.Sub);
+                var userId = principal.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
                 var user = await _userManager.FindByIdAsync(userId);
 
                 if (user == null)

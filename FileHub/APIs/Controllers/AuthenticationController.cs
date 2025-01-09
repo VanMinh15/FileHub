@@ -99,7 +99,6 @@ namespace APIs.Controllers
             return Ok(response);
         }
 
-        [Authorize]
         [HttpPost("refresh-token")]
         public async Task<IActionResult> RefreshToken([FromBody] string refreshToken)
         {
