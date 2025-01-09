@@ -72,29 +72,53 @@ dashboardApi.interceptors.response.use(
     const originalRequest = error.config;
 
     if (error.response?.status === 401 && !originalRequest._retry) {
+      console.log("Token expired, attempting to refresh...");
       originalRequest._retry = true;
       const refreshToken = Cookies.get("refreshToken");
 
+      if (!refreshToken) {
+        console.error("No refresh token found in cookies");
+        store.dispatch(logout());
+        return Promise.reject(error);
+      }
+
       try {
+        console.log("Calling refresh token endpoint...");
         const response = await axios.post<
           ApiResponse<{ token: string; refreshToken: string }>
-        >("https://localhost:7145/api/Authentication/refresh-token", {
-          refreshToken,
-        });
+        >(
+          "https://localhost:7145/api/Authentication/refresh-token",
+          refreshToken, // Send refresh token directly in the request body
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
 
         if (response.data.success && response.data.data) {
+          console.log("Token refresh successful");
           const { token, refreshToken } = response.data.data;
           Cookies.set("token", token);
           Cookies.set("refreshToken", refreshToken);
           dashboardApi.defaults.headers.common[
             "Authorization"
           ] = `Bearer ${token}`;
+
+          // Update the original request's Authorization header
+          originalRequest.headers.Authorization = `Bearer ${token}`;
           return dashboardApi(originalRequest);
         } else {
+          console.log("Token refresh failed:", response.data.message);
           store.dispatch(logout());
           return Promise.reject(error);
         }
-      } catch (refreshError) {
+      } catch (refreshError: any) {
+        console.error("Error during token refresh:", {
+          status: refreshError.response?.status,
+          message: refreshError.response?.data?.message,
+          data: refreshError.response?.data,
+        });
         store.dispatch(logout());
         return Promise.reject(refreshError);
       }
@@ -136,12 +160,9 @@ export const getRecentActivities = async (
   params: PaginationParams
 ): Promise<ApiResponse<Activity[]>> => {
   try {
-    const response = await axios.get(
+    const response = await dashboardApi.get(
       "https://localhost:7145/api/File/recent-activities",
       {
-        headers: {
-          Authorization: `Bearer ${Cookies.get("token")}`,
-        },
         params: {
           PageIndex: params.pageIndex,
           PageSize: params.pageSize,
@@ -169,12 +190,9 @@ export const getChatHistory = async (
   pageSize: number = 20
 ): Promise<ApiResponse<InfiniteScrollList<ChatActivity>>> => {
   try {
-    const response = await axios.get(
+    const response = await dashboardApi.get(
       "https://localhost:7145/api/File/chat-history",
       {
-        headers: {
-          Authorization: `Bearer ${Cookies.get("token")}`,
-        },
         params: {
           senderID: senderId,
           receiverID: receiverId,

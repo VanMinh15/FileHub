@@ -1,14 +1,39 @@
 import { Cloud } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { ModeToggle } from "./mode-toggle";
+import { useDispatch, useSelector } from "react-redux";
+import { logout } from "@/store/slices/authSlice";
+import { Button } from "@/components/ui/button";
+import { RootState } from "@/store/store";
 
 export const Header = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { isAuthenticated } = useSelector((state: RootState) => state.auth);
+  const isMainPage = location.pathname === "/";
+
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate("/");
+  };
+
+  const handleNavigation = (e: React.MouseEvent) => {
+    e.preventDefault();
+    navigate(isAuthenticated ? "/dash-board" : "/");
+  };
+
   return (
     <nav className="border-b bg-background/80 backdrop-blur-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-center h-24 relative">
+        <div
+          className={`flex items-center h-24 ${
+            isMainPage ? "justify-between" : "justify-center"
+          }`}
+        >
           <Link
-            to="/"
+            to={isAuthenticated ? "/dash-board" : "/"}
+            onClick={handleNavigation}
             className="flex items-center space-x-6 hover:opacity-80 transition-opacity"
           >
             <div className="relative">
@@ -17,8 +42,22 @@ export const Header = () => {
             </div>
             <span className="text-5xl font-bold">FileHub</span>
           </Link>
-          <div className="absolute right-4">
+
+          <div
+            className={`flex items-center space-x-4 ${
+              isMainPage ? "" : "absolute right-8"
+            }`}
+          >
             <ModeToggle />
+            {isAuthenticated && (
+              <Button
+                variant="ghost"
+                onClick={handleLogout}
+                className="font-medium"
+              >
+                Sign out
+              </Button>
+            )}
           </div>
         </div>
       </div>

@@ -140,6 +140,8 @@ const authSlice = createSlice({
       state.refreshToken = null;
       Cookies.remove("token");
       Cookies.remove("refreshToken");
+      state.loading = false;
+      localStorage.removeItem("token");
     },
     clearErrors: (state) => {
       state.error = null;

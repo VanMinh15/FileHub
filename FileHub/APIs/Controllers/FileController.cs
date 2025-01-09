@@ -20,7 +20,6 @@ namespace APIs.Controllers
 
         [HttpPost("upload-file")]
         [Authorize]
-
         public async Task<IActionResult> UploadFile([FromForm] UploadFileDTO uploadFileDTO)
         {
             var senderID = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -40,7 +39,6 @@ namespace APIs.Controllers
 
         [HttpGet("recent-activities")]
         [Authorize]
-
         public async Task<IActionResult> GetRecentActivities([FromQuery] PaginationParams paginationParams)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);

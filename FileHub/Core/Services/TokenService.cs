@@ -105,10 +105,6 @@ namespace Application.Services
             {
                 var jwtToken2 = tokenHandler.ReadJwtToken(refreshToken);
 
-                // Log or inspect claims for debugging
-                var claims = jwtToken2.Claims.ToList();
-                var subClaim = jwtToken2.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Sub)?.Value;
-
                 var principal = tokenHandler.ValidateToken(refreshToken, new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,
