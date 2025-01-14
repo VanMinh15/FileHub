@@ -5,6 +5,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { UploadFile } from "./UploadFile";
 
 interface FileHistoryProps {
   receiverId?: string;
@@ -145,7 +146,6 @@ export const FileHistory = ({ receiverId }: FileHistoryProps) => {
             {otherUserName || "Chat History"}
           </Badge>
         </h2>
-        <div className="w-[160px]" />
       </div>
 
       <ScrollArea className="flex-1">

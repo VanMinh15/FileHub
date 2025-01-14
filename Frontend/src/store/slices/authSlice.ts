@@ -125,13 +125,48 @@ export const register = createAsyncThunk(
   }
 );
 
+export const initializeFromToken = createAsyncThunk(
+  "auth/initializeFromToken",
+  async (_, { dispatch }) => {
+    const token = Cookies.get("token");
+    const refreshToken = Cookies.get("refreshToken");
+
+    if (token) {
+      const userData = decodeToken(token);
+      if (userData) {
+        dispatch(
+          loginSuccess({
+            user: userData,
+            token,
+            refreshToken: refreshToken || null,
+          })
+        );
+        return true;
+      }
+    }
+    return false;
+  }
+);
+
 const authSlice = createSlice({
   name: "auth",
-  initialState,
+  initialState: {
+    ...initialState,
+    isAuthenticated: !!Cookies.get("token"),
+  },
   reducers: {
-    loginSuccess: (state, action: PayloadAction<UserData>) => {
+    loginSuccess: (
+      state,
+      action: PayloadAction<{
+        user: UserData;
+        token: string;
+        refreshToken: string | null;
+      }>
+    ) => {
       state.isAuthenticated = true;
-      state.user = action.payload;
+      state.user = action.payload.user;
+      state.token = action.payload.token;
+      state.refreshToken = action.payload.refreshToken;
     },
     logout: (state) => {
       state.isAuthenticated = false;
@@ -145,18 +180,6 @@ const authSlice = createSlice({
     },
     clearErrors: (state) => {
       state.error = null;
-    },
-    initializeFromToken: (state) => {
-      const token = Cookies.get("token");
-      if (token) {
-        const userData = decodeToken(token);
-        if (userData) {
-          state.user = userData;
-          state.isAuthenticated = true;
-          state.token = token;
-          state.refreshToken = Cookies.get("refreshToken") || null;
-        }
-      }
     },
   },
   extraReducers: (builder) => {
@@ -206,6 +229,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { logout, clearErrors, loginSuccess, initializeFromToken } =
-  authSlice.actions;
+export const { logout, clearErrors, loginSuccess } = authSlice.actions;
 export default authSlice.reducer;

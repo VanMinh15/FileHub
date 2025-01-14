@@ -6,17 +6,40 @@ import { Toaster } from "@/components/ui/toaster";
 import { Header } from "@/components/layout/Header";
 import { Dashboard } from "./pages/Dashboard";
 import { useSelector, useDispatch } from "react-redux";
-import { RootState } from "./store/store";
-import { useEffect } from "react";
+import { RootState, AppDispatch } from "./store/store";
+import { useEffect, useState } from "react";
 import { initializeFromToken } from "@/store/slices/authSlice";
 import { FileHub } from "./pages/FileHub";
 
+const AuthInitializer = ({ children }: { children: React.ReactNode }) => {
+  const dispatch = useDispatch<AppDispatch>();
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  useEffect(() => {
+    const init = async () => {
+      await dispatch(initializeFromToken());
+      setIsInitialized(true);
+    };
+    init();
+  }, [dispatch]);
+
+  if (!isInitialized) {
+    return (
+      <div className="h-screen w-screen flex items-center justify-center">
+        <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
+      </div>
+    );
+  }
+
+  return <>{children}</>;
+};
+
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, isAuthenticated } = useSelector(
+  const { user, isAuthenticated, token } = useSelector(
     (state: RootState) => state.auth
   );
 
-  if (!isAuthenticated || !user) {
+  if (!isAuthenticated || !user || !token) {
     return <Navigate to="/" replace />;
   }
 
@@ -54,39 +77,34 @@ function MainContent() {
 }
 
 function App() {
-  const dispatch = useDispatch();
-
-  useEffect(() => {
-    dispatch(initializeFromToken());
-  }, [dispatch]);
-
   return (
     <BrowserRouter>
       <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-        <div className="min-h-screen bg-background text-foreground">
-          <Routes>
-            <Route path="/" element={<MainContent />} />
-            <Route path="/reset-password" element={<ResetPasswordForm />} />
-            <Route path="/dash-board" element={<Dashboard />} />
-            <Route
-              path="/dash-board"
-              element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/filehub/:userId"
-              element={
-                <ProtectedRoute>
-                  <FileHub />
-                </ProtectedRoute>
-              }
-            />
-          </Routes>
-          <Toaster />
-        </div>
+        <AuthInitializer>
+          <div className="min-h-screen bg-background text-foreground">
+            <Routes>
+              <Route path="/" element={<MainContent />} />
+              <Route path="/reset-password" element={<ResetPasswordForm />} />
+              <Route
+                path="/dash-board"
+                element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/filehub/:userId"
+                element={
+                  <ProtectedRoute>
+                    <FileHub />
+                  </ProtectedRoute>
+                }
+              />
+            </Routes>
+            <Toaster />
+          </div>
+        </AuthInitializer>
       </ThemeProvider>
     </BrowserRouter>
   );

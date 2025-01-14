@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Activity } from "@/types/activity-types";
+import { Activity } from "@/types/dashboard-types";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";

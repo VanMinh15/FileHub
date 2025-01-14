@@ -1,8 +1,9 @@
 import { useState, useCallback } from "react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-import { Plus, FolderUp, Upload, File } from "lucide-react";
+import { Plus, FolderUp, File } from "lucide-react";
 import { useDropzone } from "react-dropzone";
+import { UploadFile } from "./UploadFile";
 
 interface FileUploadProps {
   receiverId?: string;
@@ -49,14 +50,10 @@ export const FileUpload = ({ receiverId }: FileUploadProps) => {
 
         <div className="flex items-center gap-2">
           <div className="flex-1 flex gap-2">
-            <Button
-              variant="secondary"
-              className="flex items-center gap-2"
-              onClick={() => document.getElementById("file-input")?.click()}
-            >
-              <Upload size={16} />
-              Select Files
-            </Button>
+            <UploadFile
+              receiverId={receiverId || ""}
+              onUploadSuccess={() => setFiles([])}
+            />
             <Button
               variant="secondary"
               className="flex items-center gap-2"
@@ -110,7 +107,7 @@ export const FileUpload = ({ receiverId }: FileUploadProps) => {
                 {files.length} file(s) selected
               </div>
               <Button onClick={handleUpload} disabled={!files.length} size="sm">
-                Upload
+                Upload Files
               </Button>
             </div>
           </>

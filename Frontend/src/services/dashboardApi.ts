@@ -3,7 +3,7 @@ import Cookies from "js-cookie";
 import { ApiResponse } from "@/types/api-types";
 import { store } from "@/store/store";
 import { logout } from "@/store/slices/authSlice";
-import { Activity } from "@/types/activity-types";
+import { Activity } from "@/types/dashboard-types";
 
 interface ReceiverSearchParams {
   keyword: string;
@@ -88,7 +88,7 @@ dashboardApi.interceptors.response.use(
           ApiResponse<{ token: string; refreshToken: string }>
         >(
           "https://localhost:7145/api/Authentication/refresh-token",
-          refreshToken, // Send refresh token directly in the request body
+          refreshToken,
           {
             headers: {
               "Content-Type": "application/json",
@@ -211,6 +211,39 @@ export const getChatHistory = async (
         hasMore: false,
         lastTimestamp: undefined,
       },
+      errors: error.response?.data?.errors || [],
+    };
+  }
+};
+
+export const uploadFile = async (
+  file: File,
+  receiverId: string,
+  description?: string
+): Promise<ApiResponse<any>> => {
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("receiverId", receiverId);
+    if (description) {
+      formData.append("description", description);
+    }
+
+    const response = await dashboardApi.post(
+      "https://localhost:7145/api/File/upload-file",
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+    return response.data;
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error.response?.data?.message || "Failed to upload file",
+      data: null,
       errors: error.response?.data?.errors || [],
     };
   }
